@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const Signup = () => {
@@ -9,13 +10,22 @@ const Signup = () => {
     password: "",
   });
 
+  const [message, setMessage] = useState("");
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form Submitted:", formData);
+
+    try {
+      const response = await axios.post("http://localhost:5000/auth/signup", formData);
+
+      setMessage(response.data.message);
+    } catch (error: any) {
+      setMessage(error.response?.data?.error || "Signup failed");
+    }
   };
 
   return (
@@ -32,6 +42,9 @@ const Signup = () => {
               />
             </a>
             <h3 className="text-left mb-4">Create an Account</h3>
+
+            {message && <p className="alert alert-info">{message}</p>} 
+
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
                 <label className="form-label">Full Name</label>
@@ -68,11 +81,7 @@ const Signup = () => {
               </div>
               <div className="col-12">
                 <div className="form-check">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    id="gridCheck"
-                  />
+                  <input className="form-check-input" type="checkbox" id="gridCheck" required />
                   <label className="form-check-label" htmlFor="gridCheck">
                     Agree to Terms and Conditions
                   </label>
@@ -83,7 +92,7 @@ const Signup = () => {
               </button>
             </form>
             <p className="text-center mt-3">
-              Already have an account? <Link to="/">Login</Link>
+              Already have an account? <Link to="/login">Login</Link>
             </p>
           </div>
         </div>

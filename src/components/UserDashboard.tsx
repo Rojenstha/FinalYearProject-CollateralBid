@@ -2,9 +2,14 @@ import { useEffect, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import axios from "axios";
 import logo from "../assets/logo.png";
+import background from "../assets/bg.jpg";
+import { Dropdown, Modal, Button } from "react-bootstrap";
+import { Link, useNavigate } from "react-router-dom";
 
 const DashboardNavbar = () => {
   const [user, setUser] = useState(null);
+  const [showPopup, setShowPopup] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     axios
@@ -17,6 +22,16 @@ const DashboardNavbar = () => {
       })
       .catch((error) => console.error("Error fetching user data:", error));
   }, []);
+
+  const handleLogout = () => {
+    setShowPopup(true);
+  };
+
+  const confirmLogout = () => {
+    localStorage.removeItem("token");
+    setShowPopup(false);
+    navigate("/");
+  };
 
   return (
     <div>
@@ -63,7 +78,7 @@ const DashboardNavbar = () => {
           <button className="btn btn-outline-dk me-2">
             <i className="bi bi-bell"></i> Notifications
           </button>
-          {user ? (
+          {/* {user ? (
             <div className="d-flex align-items-center text-dk">
               <img
                 src={user.profilePic || "/default-profile.png"}
@@ -76,26 +91,68 @@ const DashboardNavbar = () => {
             </div>
           ) : (
             <span className="text-light">Loading...</span>
-          )}
+          )} */}
+          <Dropdown>
+            <Dropdown.Toggle
+              variant="dark"
+              className="d-flex align-items-center text-white border-0"
+            >
+              {/* <img
+                src="https://via.placeholder.com/40"
+                alt="Profile"
+                width="40"
+                height="40"
+                className="rounded-circle me-2"
+              /> */}
+              <strong>User</strong>
+            </Dropdown.Toggle>
+            <Dropdown.Menu className="bg-dark text-white">
+              <Dropdown.Item as={Link} to="/profile" className="text-white">
+                Profile
+              </Dropdown.Item>
+              <Dropdown.Item as={Link} to="/settings" className="text-white">
+                Settings
+              </Dropdown.Item>
+              <Dropdown.Divider />
+              <Dropdown.Item onClick={handleLogout} className="text-danger">
+                Sign out
+              </Dropdown.Item>
+            </Dropdown.Menu>
+          </Dropdown>
         </div>
       </nav>
+      {/* Logout Confirmation Modal */}
+      <Modal show={showPopup} onHide={() => setShowPopup(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Logout</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>Are you sure you want to sign out?</Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowPopup(false)}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={confirmLogout}>
+            Sign out
+          </Button>
+        </Modal.Footer>
+      </Modal>
       <div
         className="container-fluid text-light d-flex align-items-center justify-content-left text-left"
         style={{
           minHeight: "80vh",
           width: "100%",
-          //backgroundImage: `url(${background})`,
+          backgroundImage: `url(${background})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
-          backgroundAttachment: "fixed",
+          //backgroundAttachment: "fixed",
           backgroundBlendMode: "darken",
           backgroundColor: "rgba(0, 0, 0, 0.5)",
         }}
       >
         <div className="container">
           <h1 className="pb-5" style={{ fontSize: "5rem", fontWeight: "bold" }}>
-            Welcome to Our Auction Platform
+            Welcome to CollateralBid!
           </h1>
           <p className="fs-3">
             Discover amazing auctions, bid on your favorite items, and enjoy the

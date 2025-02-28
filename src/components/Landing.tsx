@@ -2,7 +2,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { Link } from "react-router-dom";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import logo from "../assets/logo.png";
-import background from "../assets/bg.jpeg";
+import background from "../assets/bg.jpg";
 
 function Landing() {
   return (
@@ -47,24 +47,24 @@ function Landing() {
         </div>
       </nav>
 
-      {/* Hero Section */}
+      {/* Body Section */}
       <div
         className="container-fluid text-light d-flex align-items-center justify-content-left text-left"
         style={{
           minHeight: "80vh",
           width: "100%",
-          //backgroundImage: `url(${background})`,
+          backgroundImage: `url(${background})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundRepeat: "no-repeat",
-          backgroundAttachment: "fixed",
+          //backgroundAttachment: "fixed",
           backgroundBlendMode: "darken",
           backgroundColor: "rgba(0, 0, 0, 0.5)",
         }}
       >
         <div className="container">
           <h1 className="pb-5" style={{ fontSize: "5rem", fontWeight: "bold" }}>
-            Welcome to Our Auction Platform
+            Welcome to CollateralBid!
           </h1>
           <p className="fs-3">
             Discover amazing auctions, bid on your favorite items, and enjoy the
@@ -99,7 +99,7 @@ function Landing() {
       {/* Contact Section - Left-Aligned */}
       <div
         id="contact"
-        className="container-fluid text-dk d-flex align-items-center justify-content-left text-left"
+        className="container-fluid text-dk align-items-center justify-content-left text-left"
       >
         <div className="row">
           <div className="col-md-6">

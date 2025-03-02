@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Dropdown, Modal, Button, Form } from "react-bootstrap";
 import { House, Grid, People, Plus } from "react-bootstrap-icons";
 
 const ManagerDashboard = () => {
   const [active, setActive] = useState("Home");
+  const [showPopup, setShowPopup] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const navigate = useNavigate();
   const [productData, setProductData] = useState({
     name: "",
     location: "",
@@ -27,6 +29,16 @@ const ManagerDashboard = () => {
     e.preventDefault();
     console.log(productData);
     setShowModal(false);
+  };
+
+  const handleLogout = () => {
+    setShowPopup(true);
+  };
+
+  const confirmLogout = () => {
+    localStorage.removeItem("token");
+    setShowPopup(false);
+    navigate("/");
   };
 
   return (
@@ -103,9 +115,25 @@ const ManagerDashboard = () => {
             Settings
           </Dropdown.Item>
           <Dropdown.Divider />
-          <Dropdown.Item as={Link} to="/logout" className="text-danger">
+          <Dropdown.Item onClick={handleLogout} className="text-danger">
             Sign out
           </Dropdown.Item>
+
+          {/* logout */}
+          <Modal show={showPopup} onHide={() => setShowPopup(false)}>
+            <Modal.Header closeButton>
+              <Modal.Title>Confirm Logout</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>Are you sure you want to sign out?</Modal.Body>
+            <Modal.Footer>
+              <Button variant="secondary" onClick={() => setShowPopup(false)}>
+                Cancel
+              </Button>
+              <Button variant="danger" onClick={confirmLogout}>
+                Sign out
+              </Button>
+            </Modal.Footer>
+          </Modal>
         </Dropdown.Menu>
       </Dropdown>
       <Modal show={showModal} onHide={() => setShowModal(false)}>

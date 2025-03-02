@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 import logo from "../assets/logo.png";
 import background from "../assets/bg.jpg";
+import { Person, MenuDown, GraphUpArrow } from "react-bootstrap-icons";
 
 function Landing() {
   return (
@@ -19,6 +20,7 @@ function Landing() {
             type="button"
             data-bs-toggle="dropdown"
           >
+            <MenuDown className="me-2" />
             Menu
           </button>
           <ul className="dropdown-menu">
@@ -42,6 +44,7 @@ function Landing() {
 
         <div className="ms-auto">
           <Link to="/login" className="btn btn-outline-dark">
+            <Person className="me-2" />
             Login/Signup
           </Link>
         </div>
@@ -73,6 +76,7 @@ function Landing() {
 
           {/* Button below paragraph */}
           <a className="btn btn-outline-light mt-3" href="#auction">
+            <GraphUpArrow className="me-2" />
             View Auctions
           </a>
         </div>
@@ -85,7 +89,10 @@ function Landing() {
       >
         <div className="row align-items-center">
           <div>
-            <h1 className="fw-bold">Auction</h1>
+            <h1 className="fw-bold">
+              <GraphUpArrow className="me-2" />
+              Auction
+            </h1>
           </div>
           <div>
             <p className="fs-4">
@@ -96,14 +103,17 @@ function Landing() {
         </div>
       </div>
 
-      {/* Contact Section - Left-Aligned */}
+      {/* Contact Section */}
       <div
         id="contact"
         className="container-fluid text-dk align-items-center justify-content-left text-left"
       >
         <div className="row">
           <div className="col-md-6">
-            <h2 className="fw-bold">Contact Us</h2>
+            <h2 className="fw-bold">
+              <Person className="me-2" />
+              Contact Us
+            </h2>
             <p>
               Get in touch with us for any inquiries, support, or feedback. We
               are here to assist you!

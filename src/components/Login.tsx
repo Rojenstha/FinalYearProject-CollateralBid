@@ -14,10 +14,11 @@ const Login = () => {
   const [companies, setCompanies] = useState<string[]>([]);
   const [message, setMessage] = useState("");
 
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
   useEffect(() => {
-    axios.get("http://localhost:5000/companies")
+    axios
+      .get("http://localhost:5000/companies")
       .then((response) => setCompanies(response.data))
       .catch((error) => console.error("Error fetching companies:", error));
   }, []);
@@ -38,8 +39,13 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const loginData = showDropdown ? { ...formData, company: selectedCompany } : formData;
-      const response = await axios.post("http://localhost:5000/auth/login", loginData);
+      const loginData = showDropdown
+        ? { ...formData, company: selectedCompany }
+        : formData;
+      const response = await axios.post(
+        "http://localhost:5000/auth/login",
+        loginData
+      );
 
       setMessage(response.data.message);
 
@@ -61,7 +67,12 @@ const Login = () => {
         <div className="col-md-5">
           <div className="card shadow-lg p-4">
             <a className="text-center mb-4" href="#">
-              <img src="/src/assets/logo.png" alt="Bootstrap" width="100" height="45" />
+              <img
+                src="/src/assets/logo.png"
+                alt="Bootstrap"
+                width="100"
+                height="45"
+              />
             </a>
             <h2 className="text-center mb-4">Login to Collateral-Bid</h2>
 
@@ -107,7 +118,12 @@ const Login = () => {
               {showDropdown && (
                 <div className="mb-3">
                   <label className="form-label">Company Name</label>
-                  <select className="form-select" value={selectedCompany} onChange={handleDropdownChange} required>
+                  <select
+                    className="form-select"
+                    value={selectedCompany}
+                    onChange={handleDropdownChange}
+                    required
+                  >
                     <option value="">Choose a company</option>
                     {companies.map((company, index) => (
                       <option key={index} value={company}>
@@ -128,8 +144,6 @@ const Login = () => {
             <p className="text-center mt-3">
               Don't have an account? <Link to="/signup">Sign Up</Link>
             </p>
-
-
           </div>
         </div>
       </div>

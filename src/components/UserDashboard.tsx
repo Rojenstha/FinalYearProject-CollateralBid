@@ -5,6 +5,7 @@ import logo from "../assets/logo.png";
 import background from "../assets/bg.jpg";
 import { Dropdown, Modal, Button } from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
+import { Bell, Person, MenuDown, GraphUpArrow } from "react-bootstrap-icons";
 
 const DashboardNavbar = () => {
   const [user, setUser] = useState(null);
@@ -53,6 +54,7 @@ const DashboardNavbar = () => {
             data-bs-toggle="dropdown"
             aria-expanded="false"
           >
+            <MenuDown className="me-2" />
             Menu
           </button>
           <ul className="dropdown-menu">
@@ -76,7 +78,8 @@ const DashboardNavbar = () => {
 
         <div className="ms-auto d-flex align-items-center">
           <button className="btn btn-outline-dk me-2">
-            <i className="bi bi-bell"></i> Notifications
+            <i className="bi bi-bell"></i> <Bell className="me-2" />
+            Notifications
           </button>
           {/* {user ? (
             <div className="d-flex align-items-center text-dk">
@@ -97,6 +100,7 @@ const DashboardNavbar = () => {
               variant="dark"
               className="d-flex align-items-center text-white border-0"
             >
+              <Person className="me-2" />
               {/* <img
                 src="https://via.placeholder.com/40"
                 alt="Profile"
@@ -107,10 +111,14 @@ const DashboardNavbar = () => {
               <strong>User</strong>
             </Dropdown.Toggle>
             <Dropdown.Menu className="bg-dark text-white">
-              <Dropdown.Item as={Link} to="/profile" className="text-white">
+              <Dropdown.Item as={Link} to="/profile" className="text-secondary">
                 Profile
               </Dropdown.Item>
-              <Dropdown.Item as={Link} to="/settings" className="text-white">
+              <Dropdown.Item
+                as={Link}
+                to="/settings"
+                className="text-secondary"
+              >
                 Settings
               </Dropdown.Item>
               <Dropdown.Divider />
@@ -161,6 +169,7 @@ const DashboardNavbar = () => {
 
           {/* Button below paragraph */}
           <a className="btn btn-outline-light mt-3" href="#auction">
+            <GraphUpArrow className="me-2" />
             View Auctions
           </a>
         </div>
@@ -173,7 +182,10 @@ const DashboardNavbar = () => {
       >
         <div className="row align-items-center">
           <div>
-            <h1 className="fw-bold">Auction</h1>
+            <h1 className="fw-bold">
+              <GraphUpArrow className="me-2" />
+              Auction
+            </h1>
           </div>
           <div>
             <p className="fs-4">
@@ -184,14 +196,18 @@ const DashboardNavbar = () => {
         </div>
       </div>
 
-      {/* Contact Section - Left-Aligned */}
+      {/* Contact*/}
       <div
         id="contact"
         className="container-fluid text-dk d-flex align-items-center justify-content-left text-left"
       >
         <div className="row">
           <div className="col-md-6">
-            <h2 className="fw-bold">Contact Us</h2>
+            <h2 className="fw-bold">
+              {" "}
+              <Person className="me-2" />
+              Contact Us
+            </h2>
             <p>
               Get in touch with us for any inquiries, support, or feedback. We
               are here to assist you!

@@ -5,7 +5,9 @@ import Signup from "./components/Signup";
 import UserDashboard from "./components/UserDashboard";
 import Landing from "./components/Landing";
 import ForgotPassword from "./components/ForgotPassword";
-import ManagerDashboard from "./components/ManagerDashboard";
+import ManagerDashboard from "./components/manager/ManagerDashboard";
+import InAuction from "./components/manager/InAuction";
+import ManagerNotification from "./components/manager/Notifications";
 
 function App() {
   return (
@@ -17,6 +19,8 @@ function App() {
         <Route path="/forgotpassword" element={<ForgotPassword />} />
         <Route path="/user-dashboard" element={<UserDashboard />} />
         <Route path="/manager-dashboard" element={<ManagerDashboard />} />
+        <Route path="/in-auction" element={<InAuction />} />
+        <Route path="/manager-notification" element={<ManagerNotification />} />
       </Routes>
     </Router>
   );

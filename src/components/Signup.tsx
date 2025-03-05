@@ -8,6 +8,7 @@ const Signup = () => {
     name: "",
     email: "",
     password: "",
+    phone: "",
   });
 
   const [message, setMessage] = useState("");
@@ -20,7 +21,10 @@ const Signup = () => {
     e.preventDefault();
 
     try {
-      const response = await axios.post("http://localhost:5000/auth/signup", formData);
+      const response = await axios.post(
+        "http://localhost:5000/register",
+        formData
+      );
 
       setMessage(response.data.message);
     } catch (error: any) {
@@ -43,7 +47,7 @@ const Signup = () => {
             </a>
             <h3 className="text-left mb-4">Create an Account</h3>
 
-            {message && <p className="alert alert-info">{message}</p>} 
+            {message && <p className="alert alert-info">{message}</p>}
 
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
@@ -57,6 +61,32 @@ const Signup = () => {
                   required
                 />
               </div>
+              <div className="mb-3">
+                <label className="form-label">Phone Number</label>
+                <div className="input-group">
+                  <span className="input-group-text">+977</span>
+                  <input
+                    type="text"
+                    className="form-control"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, "");
+                      if (value.length <= 10) {
+                        setFormData({ ...formData, phone: value });
+                      }
+                    }}
+                    required
+                    placeholder="Enter 10-digit number"
+                  />
+                </div>
+                {formData.phone.length !== 10 && (
+                  <p className="text-danger mt-1">
+                    Phone number must be 10 digits
+                  </p>
+                )}
+              </div>
+
               <div className="mb-3">
                 <label className="form-label">Email</label>
                 <input
@@ -81,7 +111,12 @@ const Signup = () => {
               </div>
               <div className="col-12">
                 <div className="form-check">
-                  <input className="form-check-input" type="checkbox" id="gridCheck" required />
+                  <input
+                    className="form-check-input"
+                    type="checkbox"
+                    id="gridCheck"
+                    required
+                  />
                   <label className="form-check-label" htmlFor="gridCheck">
                     Agree to Terms and Conditions
                   </label>

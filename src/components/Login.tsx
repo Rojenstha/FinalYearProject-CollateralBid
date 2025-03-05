@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -7,51 +7,38 @@ const Login = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    bank: "",
   });
 
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState("");
-  const [companies, setCompanies] = useState<string[]>([]);
+  const [showBankField, setShowBankField] = useState(false);
   const [message, setMessage] = useState("");
-
   const navigate = useNavigate();
-
-  useEffect(() => {
-    axios
-      .get("http://localhost:5000/companies")
-      .then((response) => setCompanies(response.data))
-      .catch((error) => console.error("Error fetching companies:", error));
-  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setShowDropdown(e.target.checked);
-  };
-
-  const handleDropdownChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedCompany(e.target.value);
+    setShowBankField(e.target.checked);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
-      const loginData = showDropdown
-        ? { ...formData, company: selectedCompany }
-        : formData;
+      const loginData = showBankField
+        ? formData
+        : { email: formData.email, password: formData.password }; // ✅ Send only necessary fields
+
       const response = await axios.post(
-        "http://localhost:5000/auth/login",
+        "http://localhost:5000/login",
         loginData
       );
 
       setMessage(response.data.message);
-
       localStorage.setItem("token", response.data.token);
 
-      if (showDropdown && response.data.company) {
+      if (response.data.isManager) {
         navigate("/manager-dashboard");
       } else {
         navigate("/user-dashboard");
@@ -106,31 +93,25 @@ const Login = () => {
                 <input
                   className="form-check-input"
                   type="checkbox"
-                  id="toggleDropdown"
+                  id="toggleBankField"
                   onChange={handleCheckboxChange}
                 />
-                <label className="form-check-label" htmlFor="toggleDropdown">
-                  Manager (**Check only for bank staff**)
+                <label className="form-check-label" htmlFor="toggleBankField">
+                  Manager (**Check only for officials**)
                 </label>
               </div>
 
-              {/* Dropdown (Only Visible if Checkbox is Checked) */}
-              {showDropdown && (
+              {showBankField && (
                 <div className="mb-3">
-                  <label className="form-label">Company Name</label>
-                  <select
-                    className="form-select"
-                    value={selectedCompany}
-                    onChange={handleDropdownChange}
+                  <label className="form-label">Bank Code</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    name="bank"
+                    value={formData.bank}
+                    onChange={handleChange}
                     required
-                  >
-                    <option value="">Choose a company</option>
-                    {companies.map((company, index) => (
-                      <option key={index} value={company}>
-                        {company}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </div>
               )}
 

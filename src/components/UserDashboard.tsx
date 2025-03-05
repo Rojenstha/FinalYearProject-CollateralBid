@@ -11,6 +11,25 @@ const DashboardNavbar = () => {
   const [user, setUser] = useState(null);
   const [showPopup, setShowPopup] = useState(false);
   const navigate = useNavigate();
+  const [message, setMessage] = useState("");
+
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [comment, setComment] = useState("");
+
+  const sendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post("http://localhost:5000/message", {
+        name,
+        email,
+        comment,
+      });
+      setMessage(response.data.message);
+    } catch (error: any) {
+      setMessage(error.response?.data?.error || "Registration Failed.");
+    }
+  };
 
   useEffect(() => {
     axios
@@ -212,13 +231,15 @@ const DashboardNavbar = () => {
               Get in touch with us for any inquiries, support, or feedback. We
               are here to assist you!
             </p>
-            <form>
+            <form onSubmit={sendMessage}>
               <div className="mb-3">
                 <label className="form-label">Name</label>
                 <input
                   type="text"
                   className="form-control"
                   placeholder="Your Name"
+                  onChange={(e) => setName(e.target.value)}
+                  required
                 />
               </div>
               <div className="mb-3">
@@ -227,6 +248,8 @@ const DashboardNavbar = () => {
                   type="email"
                   className="form-control"
                   placeholder="Your Email"
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
                 />
               </div>
               <div className="mb-3">
@@ -235,11 +258,14 @@ const DashboardNavbar = () => {
                   className="form-control"
                   rows={4}
                   placeholder="Your Message"
+                  onChange={(e) => setComment(e.target.value)}
+                  required
                 ></textarea>
               </div>
               <button type="submit" className="btn btn-primary w-100">
                 Submit
               </button>
+              {message && <p className="alert alert-info">{message}</p>}
             </form>
           </div>
         </div>

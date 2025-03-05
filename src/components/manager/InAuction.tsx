@@ -136,6 +136,7 @@ function InAuction() {
           </Modal>
         </Dropdown.Menu>
       </Dropdown>
+
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Add Product</Modal.Title>
@@ -143,7 +144,16 @@ function InAuction() {
         <Modal.Body>
           <Form onSubmit={handleSubmit}>
             <Form.Group>
-              <Form.Label>Name</Form.Label>
+              <Form.Label>Name of Bank</Form.Label>
+              <Form.Control
+                type="text"
+                name="name"
+                onChange={handleChange}
+                required
+              />
+            </Form.Group>
+            <Form.Group>
+              <Form.Label>Image</Form.Label>
               <Form.Control
                 type="text"
                 name="name"
@@ -155,16 +165,7 @@ function InAuction() {
               <Form.Label>Location</Form.Label>
               <Form.Control
                 type="text"
-                name="location"
-                onChange={handleChange}
-                required
-              />
-            </Form.Group>
-            <Form.Group>
-              <Form.Label>Image URL</Form.Label>
-              <Form.Control
-                type="text"
-                name="image"
+                name="name"
                 onChange={handleChange}
                 required
               />
@@ -172,66 +173,13 @@ function InAuction() {
             <Form.Group>
               <Form.Label>Description</Form.Label>
               <Form.Control
-                as="textarea"
-                name="description"
-                onChange={handleChange}
-                required
-              />
-            </Form.Group>
-            <Form.Group>
-              <Form.Label>Type</Form.Label>
-              <Form.Select name="type" onChange={handleChange} required>
-                <option value="">Select Type</option>
-                <option value="Land">Land</option>
-                <option value="Building and Land">Building and Land</option>
-                <option value="Vehicle">Vehicle</option>
-              </Form.Select>
-            </Form.Group>
-            <Form.Group>
-              <Form.Label>Google Maps Location</Form.Label>
-              <Form.Control
                 type="text"
-                name="googleMap"
+                name="name"
                 onChange={handleChange}
                 required
               />
             </Form.Group>
-            <Form.Group>
-              <Form.Label>Start Date/Time</Form.Label>
-              <Form.Control
-                type="datetime-local"
-                name="startDateTime"
-                onChange={handleChange}
-                required
-              />
-            </Form.Group>
-            <Form.Group>
-              <Form.Label>Auction Duration (hours)</Form.Label>
-              <Form.Control
-                type="number"
-                name="duration"
-                onChange={handleChange}
-                required
-              />
-            </Form.Group>
-            <Form.Group>
-              <Form.Label>Starting Amount</Form.Label>
-              <Form.Control
-                type="number"
-                name="startingAmount"
-                onChange={handleChange}
-                required
-              />
-            </Form.Group>
-            <Form.Group>
-              <Form.Label>Bid Increment Rate</Form.Label>
-              <Form.Control
-                type="number"
-                name="bidIncrement"
-                onChange={handleChange}
-                required
-              />
-            </Form.Group>
+
             <Button variant="primary" type="submit" className="mt-3">
               Submit
             </Button>

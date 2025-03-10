@@ -5,13 +5,32 @@ const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    // Call the API to send the password reset email
     try {
-      const response = await axios.post("http://localhost:5000/auth/forgot-password", { email });
-      setMessage(response.data.message);
-    } catch (error: any) {
-      setMessage(error.response?.data?.error || "Failed to send reset link");
+      const response = await fetch(
+        "http://localhost:5000/send-password-reset-email",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
+        }
+      );
+
+      const data = await response.json();
+      if (data.success) {
+        setMessage(
+          "A password reset email has been sent if the email exists in our records."
+        );
+      } else {
+        setMessage("There was an error. Please try again.");
+      }
+    } catch (error) {
+      setMessage("There was an error. Please try again.");
     }
   };
 
@@ -26,7 +45,9 @@ const ForgotPassword = () => {
 
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
-                <label className="form-label">Enter your email to send a Verification Code</label>
+                <label className="form-label">
+                  Enter your email to send a Verification Code
+                </label>
                 <input
                   type="email"
                   className="form-control"

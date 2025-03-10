@@ -1,15 +1,17 @@
-require('dotenv').config();  // Add this line to load environment variables
+const dotenv = require('dotenv');  // Add this line to load environment variables
 
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const nodemailer = require('nodemailer');
 
 const UserModel = require("./models/User");
 const ManagerModel = require("./models/Manager");
 const MessageModel = require("./models/Message")
 
+dotenv.config();
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -81,6 +83,71 @@ app.post('/message', (req,res)=>{
   .then(res.json({message:"Message sent successfully!"}))
   .catch(res.json({error: "Failed to send message!"}))
 })
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER, // Your email
+    pass: process.env.EMAIL_PASS, // Your email password (or app password)
+  },
+});
+
+app.post('/send-password-reset-email', async (req, res) => {
+  const { email } = req.body;
+
+  // Check if the email exists in the database
+  try {
+    const user = await UserModel.findOne({ email });
+
+    if (!user) {
+      return res.status(400).json({ success: false, message: 'User not found' });
+    }
+
+    // Generate a password reset token (expires in 1 hour)
+    const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+    // Create the reset password link
+    const resetLink = `http://localhost:5000/reset-password?token=${token}`;
+
+    // Send email with the reset link
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Password Reset Request',
+      text: `Click the link to reset your password: ${resetLink}`,
+    });
+
+    res.json({ success: true, message: 'Password reset email sent' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: 'Failed to send email' });
+  }
+});
+
+app.post('/reset-password', async (req, res) => {
+  const { token, password } = req.body;
+
+  // Verify the token
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Find the user based on the decoded email (you should update their password in the DB here)
+    const user = users.find((u) => u.email === decoded.email);
+
+    if (!user) {
+      return res.status(400).json({ success: false, message: 'User not found' });
+    }
+
+    // In a real app, you'd hash the password before storing it.
+    user.password = password; // Update the password (this is just a demo)
+
+    res.json({ success: true, message: 'Password successfully reset' });
+  } catch (error) {
+    res.status(400).json({ success: false, message: 'Invalid or expired token' });
+  }
+});
+
+
 
 
 app.listen(5000, () => {

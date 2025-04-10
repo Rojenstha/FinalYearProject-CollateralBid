@@ -8,6 +8,9 @@ import ForgotPassword from "./components/ForgotPassword";
 import ManagerDashboard from "./components/manager/ManagerDashboard";
 import InAuction from "./components/manager/InAuction";
 import ManagerNotification from "./components/manager/Notifications";
+import SuccessAuction from "./components/manager/SuccessAuction";
+import SendMessage from "./components/manager/SendMessage";
+import Transaction from "./components/manager/Transaction";
 
 function App() {
   return (
@@ -21,6 +24,9 @@ function App() {
         <Route path="/manager-dashboard" element={<ManagerDashboard />} />
         <Route path="/in-auction" element={<InAuction />} />
         <Route path="/manager-notification" element={<ManagerNotification />} />
+        <Route path="/send-message" element={<SendMessage />} />
+        <Route path="/success-auction" element={<SuccessAuction />} />
+        <Route path="/transaction" element={<Transaction />} />
       </Routes>
     </Router>
   );

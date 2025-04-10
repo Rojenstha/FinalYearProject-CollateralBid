@@ -14,7 +14,7 @@ import {
   Messenger,
 } from "react-bootstrap-icons";
 
-function ManagerDashboard() {
+function Transaction() {
   const [active, setActive] = useState("Home");
   const [showLogoutPopup, setShowLogoutPopup] = useState(false);
   const [showModal, setShowModal] = useState(false);
@@ -285,4 +285,4 @@ function ManagerDashboard() {
   );
 }
 
-export default ManagerDashboard;
+export default Transaction;

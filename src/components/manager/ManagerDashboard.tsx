@@ -10,6 +10,8 @@ import {
   Bell,
   Box,
   Plus,
+  Check,
+  Messenger,
 } from "react-bootstrap-icons";
 
 function ManagerDashboard() {
@@ -70,7 +72,7 @@ function ManagerDashboard() {
           <ul className="nav nav-pills flex-column mb-auto">
             <li className="nav-item">
               <Link
-                to="/admin-dashboard"
+                to="/manager-dashboard"
                 className={`nav-link ${
                   active === "Home" ? "active" : "text-white"
                 }`}
@@ -92,6 +94,17 @@ function ManagerDashboard() {
             </li>
             <li>
               <Link
+                to="/success-auction"
+                className={`nav-link ${
+                  active === "In-Auction" ? "active" : "text-white"
+                }`}
+                onClick={() => setActive("Success")}
+              >
+                <Check className="me-2" /> Successful Auctions
+              </Link>
+            </li>
+            <li>
+              <Link
                 to="/transaction"
                 className={`nav-link ${
                   active === "Transactions" ? "active" : "text-white"
@@ -103,11 +116,22 @@ function ManagerDashboard() {
             </li>
             <li>
               <Link
-                to="/messages"
+                to="/send-message"
+                className={`nav-link ${
+                  active === "Transactions" ? "active" : "text-white"
+                }`}
+                onClick={() => setActive("Message")}
+              >
+                <Messenger className="me-2" /> Send Message
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/manager-notification"
                 className={`nav-link ${
                   active === "Messages" ? "active" : "text-white"
                 }`}
-                onClick={() => setActive("Messages")}
+                onClick={() => setActive("Notifications")}
               >
                 <Bell className="me-2" /> Notifications
               </Link>
@@ -199,7 +223,7 @@ function ManagerDashboard() {
         <Modal.Body>
           <Form onSubmit={handleSubmit}>
             <Form.Group>
-              <Form.Label>Name of Bank</Form.Label>
+              <Form.Label>Owner of the Land</Form.Label>
               <Form.Control
                 type="text"
                 name="name"

@@ -16,10 +16,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-mongoose.connect("mongodb://localhost:27017/collateralbid_db", {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-});
+mongoose.connect("mongodb://localhost:27017/collateralbid_db");
 
 app.post("/register", async (req, res) => {
   const { name, email, password, phone } = req.body;
@@ -147,7 +144,23 @@ app.post('/reset-password', async (req, res) => {
   }
 });
 
+app.get('/allusers', async(req, res)=>{
+  try{
+    const allusers = await UserModel.find();
+    res.json(allusers);
+  }catch(err){
+    res.status(500).json({ error: err.message});
+  }
+})
 
+app.get('/allmessages', async(req,res)=>{
+  try{
+      const allmessages = await MessageModel.find();
+      res.json(allmessages);
+  } catch (err) {
+      res.status(500).json({ error: err.message });
+  }
+})
 
 
 app.listen(5000, () => {

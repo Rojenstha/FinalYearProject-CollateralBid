@@ -6,6 +6,12 @@ const createProduct = asyncHandler(async(req, res) => {
   const { title, description, price, category, height, lengthpic, width, mediumused, weigth } = req.body;
   const userId = req.user.id;
 
+
+  if (!title || !description || !price) {
+    res.status(400);
+    throw new Error("Please fill in all fields");
+  }
+
   const originalSlug = slugify(title, {
     lower: true,
     remove: /[*+~.()'"!:@]/g,
@@ -20,10 +26,6 @@ const createProduct = asyncHandler(async(req, res) => {
     suffix++;
   }
 
-  if (!title || !description || !price) {
-    res.status(400);
-    throw new Error("Please fill in all fields");
-  }
   const product = await Product.create({
     user: userId,
     title,

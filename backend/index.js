@@ -48,17 +48,17 @@ app.post("/register", async (req, res) => {
 
 app.post("/login", async (req, res) => {
   const { email, password, bank } = req.body;
-  
+
   try {
     let user;
-    let isManager = false;
+    let userType = "user"; // default is user
 
     if (bank) {
       user = await ManagerModel.findOne({ email, bank });
       if (!user) {
         return res.status(403).json({ error: "Invalid Bank Code or Manager not found!" });
       }
-      isManager = true;
+      userType = "manager";
     } else {
       user = await UserModel.findOne({ email });
       if (!user) {
@@ -72,18 +72,35 @@ app.post("/login", async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user._id, isManager },
-      process.env.JWT_SECRET, 
+      { id: user._id, userType },
+      process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
-    res.json({ message: "Login successful", token, isManager });
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "Strict", 
+      maxAge: 60 * 60 * 1000,
+    });
+
+    res.json({
+      message: "Login successful",
+      userType
+    });
 
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Server error during login" });
   }
 });
+
+app.post("/logout", (req, res) => {
+  res.clearCookie("token", { httpOnly: true, secure: process.env.NODE_ENV === "production" });
+  res.status(200).json({ message: "Logged out successfully" });
+});
+
+
 
 app.post('/message', (req,res)=>{
   MessageModel.create(req.body)

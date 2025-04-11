@@ -3,10 +3,13 @@ const dotenv = require('dotenv');  // Add this line to load environment variable
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const path = require("path");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const nodemailer = require('nodemailer');
+const cookieParser = require('cookie-parser');
 
+const productRoute = require("./routes/productRoute")
 const UserModel = require("./models/User");
 const ManagerModel = require("./models/Manager");
 const MessageModel = require("./models/Message")
@@ -15,25 +18,32 @@ dotenv.config();
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 
 mongoose.connect("mongodb://localhost:27017/collateralbid_db");
 
+app.use("/api/product", productRoute);
+// app.use("/api/bidding", biddingRoute);
+// app.use("/api/category", categoryRoute);
+
+
 app.post("/register", async (req, res) => {
-  const { name, email, password, phone } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 10);
+  console.log("Request Body:", req.body);
+    const { name, email, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-  try {
-    const existingUser = await UserModel.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ error: "Email already registered" });
+    try {
+        const existingUser = await UserModel.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json({ error: "Email already registered" });
+        }
+
+        const user = new UserModel({ name, email, password: hashedPassword });
+        await user.save();
+        res.json({ message: "User registered successfully!" });
+    } catch (error) {
+        res.status(500).json({ error: "Error registering user" });
     }
-
-    const user = new UserModel({ name, email,phone, password: hashedPassword });
-    await user.save();
-    res.json({ message: "User registered successfully!" });
-  } catch (error) {
-    res.status(500).json({ error: "Error registering user" });
-  }
 });
 
 app.post("/login", async (req, res) => {

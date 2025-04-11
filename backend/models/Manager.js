@@ -5,7 +5,8 @@ const ManagerSchema = new mongoose.Schema({
     phone: Number,
     bank: String,
     email: String,
-    password: String
+    password: String,
+    role: {type: String, default: "seller"},
 })
 
 const ManagerModel = mongoose.model("manager", ManagerSchema)

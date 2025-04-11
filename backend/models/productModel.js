@@ -23,7 +23,7 @@ const productSchema = mongoose.Schema({
     category:{
         type: String,
         require: [true, "Please add a category"],
-        default: all,
+        default: "All",
     },
     commission:{
         type: Number,
@@ -45,5 +45,5 @@ const productSchema = mongoose.Schema({
     },
 })
 
-const Product = mongoose.model("Product", UserSchema);
+const Product = mongoose.model("Product", productSchema);
 module.exports = Product;

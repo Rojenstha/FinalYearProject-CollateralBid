@@ -3,18 +3,17 @@ const mongoose = require("mongoose")
 const productSchema = mongoose.Schema({
     user:{
         type: mongoose.Schema.Types.ObjectId,
-        require: true,
+        required: true,
         ref: "Manager",
     },
     title:{
         type: String,
-        require: [true, "Please add a title"],
-        trime: true,
+        required: [true, "Please add a title"],
+        trim: true,
     },
     description:{
         type: String,
-        require: [true, "Please add a description"],
-        unique: true,
+        required: [true, "Please add a description"],
     },
     image:{
         type: Object,
@@ -22,8 +21,9 @@ const productSchema = mongoose.Schema({
     },
     category:{
         type: String,
-        require: [true, "Please add a category"],
+        required: [true, "Please add a category"],
         default: "All",
+        enum: ["Land", "Land and Building", "All"]
     },
     commission:{
         type: Number,

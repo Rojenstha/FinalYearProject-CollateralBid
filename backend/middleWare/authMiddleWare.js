@@ -1,8 +1,8 @@
 const expressAsyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
-const ManagerModel = require("../models/Manager")
-const AdminModel = require("../models/admin") 
+const ManagerModel = require("../models/Manager");
+const AdminModel = require("../models/admin");
 
 const protect = expressAsyncHandler(async (req, res, next) => {
   try {
@@ -18,6 +18,8 @@ const protect = expressAsyncHandler(async (req, res, next) => {
     let user;
     if (userType === "manager") {
       user = await ManagerModel.findById(id).select("-password");
+    } else if (userType === "admin") {
+      user = await AdminModel.findById(id).select("-password");
     } else {
       user = await User.findById(id).select("-password");
     }
@@ -36,22 +38,15 @@ const protect = expressAsyncHandler(async (req, res, next) => {
   }
 });
 
-
 const isAdmin = expressAsyncHandler(async (req, res, next) => {
-  try {
-    const admin = await AdminModel.findOne({ userId: req.user._id });
-    if (!admin) {
-      res.status(403);
-      throw new Error("Access denied. You are not an admin.");
-    }
-    next();
-  } catch (error) {
+  if (req.userType !== "admin") {
     res.status(403);
     throw new Error("Access denied. You are not an admin.");
   }
+  next();
 });
 
-const isSeller = (req, res, next) => {
+const isManager = (req, res, next) => {
   if (req.userType === "manager") {
     return next();
   }
@@ -59,4 +54,4 @@ const isSeller = (req, res, next) => {
   throw new Error("Access denied. Only managers allowed.");
 };
 
-module.exports = { protect, isAdmin, isSeller };
+module.exports = { protect, isAdmin, isManager };

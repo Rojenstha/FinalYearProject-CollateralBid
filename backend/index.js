@@ -13,6 +13,7 @@ const productRoute = require("./routes/productRoute")
 const UserModel = require("./models/User");
 const ManagerModel = require("./models/Manager");
 const MessageModel = require("./models/Message")
+const AdminModel = require("./models/admin")
 
 dotenv.config();
 const app = express();
@@ -199,6 +200,151 @@ app.get('/allmessages', async(req,res)=>{
   }
 })
 
+app.post("/admin/login", async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    const user = await AdminModel.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ error: "Admin not found." });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: "Invalid credentials" });
+    }
+
+    const token = jwt.sign(
+      { id: user._id, userType: "admin" },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+    
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      sameSite: "Lax",
+      secure: false, 
+      maxAge: 24 * 60 * 60 * 1000,
+    });
+
+    res.status(200).json({
+      message: "Login successful",
+      token,
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Server error during login." });
+  }
+});
+
+app.post('admin/register', async (req, res) => {
+  const { email, password, name } = req.body;
+  if (!email || !password || !name) {
+    return res.status(400).json({ error: 'Please provide all required fields' });
+  }
+
+  try {
+    const existingAdmin = await AdminModel.findOne({ email });
+    if (existingAdmin) {
+      return res.status(400).json({ error: 'Admin already exists with that email' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newAdmin = new AdminModel({
+      email,
+      password: hashedPassword,
+      name
+    });
+
+    await newAdmin.save();
+
+    res.status(201).json({
+      message: 'Admin registered successfully!',
+      admin: { email: newAdmin.email, name: newAdmin.name }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error registering admin. Please try again later.' });
+  }
+});
+
+
+app.post('admin/registerbank', async (req, res)=>{
+    const { name, code, contact } = req.body;
+    try{
+        const existBank = await BankModel.findOne({ name });
+        if (existBank){
+            return res.status(401).json({ error: "Bank already Registered."});
+        }
+
+        const bank = new BankModel({ name, code, contact});
+        await bank.save();
+        res.json({ message: "Bank registered successfully!" });
+    } catch (error) {
+      res.status(501).json({ error: "Error registering Bank." });
+    }
+})
+
+app.post("admin/registermanager", async (req, res) => {
+    const { name, email, password, phone, bank } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+  
+    try {
+      const existingUser = await ManagerModel.findOne({ email });
+      if (existingUser) {
+        return res.status(400).json({ error: "Email already registered" });
+      }
+  
+      const user = new ManagerModel({ name, email, bank, phone, password: hashedPassword });
+      await user.save();
+      res.json({ message: "User registered successfully!" });
+    } catch (error) {
+      res.status(500).json({ error: "Error registering user" });
+    }
+  });
+
+app.get("admin/allmanagers", async(req,res)=>{
+    try{
+        const allmanagers = await ManagerModel.find();
+        res.json(allmanagers);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+})
+
+app.put("admin/managers/:id", async (req, res) => {
+    try {
+      const { name, phone, bank, email } = req.body;
+      const updatedManager = await ManagerModel.findByIdAndUpdate(
+        req.params.id,
+        { name, phone, bank, email },
+        { new: true } // Returns the updated document
+      );
+      res.json(updatedManager);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+});
+
+app.delete("admin/managers/:id", async (req, res) => {
+    try {
+      await ManagerModel.findByIdAndDelete(req.params.id);
+      res.json({ message: "Manager deleted successfully" });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+});
+
+app.get("admin/allbanks", async(req,res)=>{
+    try{
+        const allbanks = await BankModel.find();
+        res.json(allbanks);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+})
 
 app.listen(5000, () => {
   console.log("Server is running on port 5000");

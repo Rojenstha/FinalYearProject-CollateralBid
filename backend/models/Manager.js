@@ -9,5 +9,5 @@ const ManagerSchema = new mongoose.Schema({
     role: {type: String, default: "seller"},
 })
 
-const ManagerModel = mongoose.model("manager", ManagerSchema)
+const ManagerModel = mongoose.model("Manager", ManagerSchema)
 module.exports = ManagerModel

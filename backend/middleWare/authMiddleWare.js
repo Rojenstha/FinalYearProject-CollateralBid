@@ -38,6 +38,15 @@ const protect = expressAsyncHandler(async (req, res, next) => {
   }
 });
 
+const isVerifiedUser = (req, res, next) => {
+  if (req.user?.isVerified === true) {
+    return next();
+  }
+  res.status(403);
+  throw new Error("Access denied. Only verified users allowed.");
+};
+
+
 const isAdmin = expressAsyncHandler(async (req, res, next) => {
   if (req.userType !== "admin") {
     res.status(403);
@@ -54,4 +63,4 @@ const isManager = (req, res, next) => {
   throw new Error("Access denied. Only managers allowed.");
 };
 
-module.exports = { protect, isAdmin, isManager };
+module.exports = { protect, isAdmin, isManager, isVerifiedUser};

@@ -1,57 +1,10 @@
-const asyncHandler = require("express-async-handler");
-const Product = require("../model/productModel");
-const BiddingProduct = require("../model/biddingProductModel");
-const sendEmail = require("../utils/sendEmail");
-const User = require("../model/userModel");
+const asyncHandler = require("express-async-handler")
+const Product = require("../models/productModel")
+const BiddingProduct = require("../models/biddingModel")
+const AdminModel = require("../models/admin")
+const ManagerModel = require("../models/Manager")
 
-const placeBid = asyncHandler(async (req, res) => {
-  const { productId, price } = req.body;
-  const userId = req.user.id;
-
-  const product = await Product.findById(productId);
-  if (!product.isverify) {
-    res.status(400);
-    throw new Error("Bidding is not verified for these products.");
-  }
-
-  if (!product || product.isSoldout === true) {
-    res.status(400);
-    throw new Error("Invalid product or bidding is closed");
-  }
-
-  /*  if (price < product.minprice) {
-    res.status(400);
-    throw new Error("Your bid must be equal to or higher than the minimum bidding price");
-  } */
-
-  const existingUserBid = await BiddingProduct.findOne({ user: userId, product: productId });
-
-  if (existingUserBid) {
-    if (price <= existingUserBid.price) {
-      res.status(400);
-      throw new Error("Your bid must be higher than your previous bid");
-    }
-    existingUserBid.price = price;
-    await existingUserBid.save();
-    res.status(200).json({ biddingProduct: existingUserBid });
-  } else {
-    const highestBid = await BiddingProduct.findOne({ product: productId }).sort({ price: -1 });
-    if (highestBid && price <= highestBid.price) {
-      res.status(400);
-      throw new Error("Your bid must be higher than the current highest bid");
-    }
-
-    const biddingProduct = await BiddingProduct.create({
-      user: userId,
-      product: productId,
-      price,
-    });
-
-    res.status(201).json(biddingProduct);
-  }
-});
-
-const getBiddingHistory = asyncHandler(async (req, res) => {
+const getBiddingHistory = asyncHandler(async(req, res) => {
   const { productId } = req.params;
 
   const biddingHistory = await BiddingProduct.find({ product: productId }).sort("-createdAt").populate("user").populate("product");
@@ -59,7 +12,42 @@ const getBiddingHistory = asyncHandler(async (req, res) => {
   res.status(200).json(biddingHistory);
 });
 
-const sellProduct = asyncHandler(async (req, res) => {
+const placeBid = asyncHandler(async (req, res) => {
+  const { productId, price } = req.body;
+  const userId = req.user.id;
+
+  const product = await Product.findById(productId);
+  if (!product) {
+    res.status(400);
+    throw new Error("Invalid product");
+  }
+
+  if (!product.isVerify) {
+    res.status(400);
+    throw new Error("Bidding is not verified for these products.");
+  }
+
+  if (product.isSoldOut === true) {
+    res.status(400);
+    throw new Error("Bidding is closed for this product.");
+  }
+
+  const highestBid = await BiddingProduct.findOne({ product: productId }).sort({ price: -1 });
+  if (highestBid && price <= highestBid.price) {
+    res.status(400);
+    throw new Error("Your bid must be higher than the current highest bid");
+  }
+
+  const newBid = await BiddingProduct.create({
+    user: userId,
+    product: productId,
+    price,
+  });
+
+  res.status(201).json(newBid);
+});
+
+const sellProduct = asyncHandler(async(req, res) => {
   const { productId } = req.body;
   const userId = req.user.id;
 
@@ -93,19 +81,19 @@ const sellProduct = asyncHandler(async (req, res) => {
   const finalPrice = highestBid.price - commissionAmount;
 
   // Update product details
-  product.isSoldout = true;
-  product.soldTo = highestBid.user;
+  product.isSoldOut = true;
+  product.soldTo = highestBid.user_id;
   product.soldPrice = finalPrice;
 
   // Update admin's commission balance
-  const admin = await User.findOne({ role: "admin" });
+  const admin = await AdminModel.findOne({ role: "admin" });
   if (admin) {
     admin.commissionBalance += commissionAmount;
     await admin.save();
   }
 
   // Update seller's balance
-  const seller = await User.findById(product.user);
+  const seller = await ManagerModel.findById(product.user);
   if (seller) {
     seller.balance += finalPrice; // Add the remaining amount to the seller's balance
     await seller.save();
@@ -117,17 +105,21 @@ const sellProduct = asyncHandler(async (req, res) => {
   await product.save();
 
   // Send email notification to the highest bidder
-  await sendEmail({
-    email: highestBid.user.email,
-    subject: "Congratulations! You won the auction!",
-    text: `You have won the auction for "${product.title}" with a bid of $${highestBid.price}.`,
-  });
+  // await sendEmail({
+  //   email: highestBid.user.email,
+  //   subject: "Congratulations! You won the auction!",
+  //   text: `You have won the auction for "${product.title}" with a bid of $${highestBid.price}.`,
+  // });
 
   res.status(200).json({ message: "Product has been successfully sold!" });
 });
 
-module.exports = {
-  placeBid,
+const test = asyncHandler(async(req, res) => {
+  res.send("test")
+});
+
+module.exports={
   getBiddingHistory,
+  placeBid, 
   sellProduct,
 };

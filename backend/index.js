@@ -16,9 +16,18 @@ const MessageModel = require("./models/Message")
 
 dotenv.config();
 const app = express();
+const cloudinary = require("cloudinary").v2;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
 app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
+
 
 mongoose.connect("mongodb://localhost:27017/collateralbid_db");
 
@@ -26,6 +35,7 @@ app.use("/api/product", productRoute);
 // app.use("/api/bidding", biddingRoute);
 // app.use("/api/category", categoryRoute);
 
+app.use("/upload", express.static(path.join(__dirname, "uploads")));
 
 app.post("/register", async (req, res) => {
   console.log("Request Body:", req.body);

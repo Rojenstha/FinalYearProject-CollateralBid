@@ -31,7 +31,7 @@ const Login = () => {
         : { email: formData.email, password: formData.password }; // ✅ Send only necessary fields
 
       const response = await axios.post(
-        "http://localhost:5000/login",
+        "http://localhost:5000/api/user/login",
         loginData
       );
 

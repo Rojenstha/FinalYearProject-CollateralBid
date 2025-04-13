@@ -3,6 +3,7 @@ const Product = require("../models/productModel")
 const BiddingProduct = require("../models/biddingModel")
 const AdminModel = require("../models/admin")
 const ManagerModel = require("../models/Manager")
+const sendEmail = require("../utils/sendEmail")
 
 const getBiddingHistory = asyncHandler(async(req, res) => {
   const { productId } = req.params;
@@ -104,12 +105,11 @@ const sellProduct = asyncHandler(async(req, res) => {
   // Save product
   await product.save();
 
-  // Send email notification to the highest bidder
-  // await sendEmail({
-  //   email: highestBid.user.email,
-  //   subject: "Congratulations! You won the auction!",
-  //   text: `You have won the auction for "${product.title}" with a bid of $${highestBid.price}.`,
-  // });
+  await sendEmail({
+    email: highestBid.user.email,
+    subject: "Congratulations! You won the auction!",
+    html: `You have won the auction for "${product.title}" with a bid of $${highestBid.price}.`,
+  });
 
   res.status(200).json({ message: "Product has been successfully sold!" });
 });

@@ -12,6 +12,18 @@ import SuccessAuction from "./components/manager/SuccessAuction";
 import SendMessage from "./components/manager/SendMessage";
 import Transaction from "./components/manager/Transaction";
 
+import AdminDashboard from "./components/admin/AdminDashboard";
+import AdminLogin from "./components/admin/Login";
+import AdminBanks from "./components/admin/Banks";
+import AdminInAuction from "./components/admin/InAuction";
+import AdminManager from "./components/admin/Managers";
+import AdminMessages from "./components/admin/Messages";
+import AdminRegister from "./components/admin/Register";
+import AdminTransaction from "./components/admin/Transaction";
+import AdminUsers from "./components/admin/Users";
+import AdminVerifyAuction from "./components/admin/VerifyAuction";
+import AdminVerifyUser from "./components/admin/VerifyUser";
+
 function App() {
   return (
     <Router>
@@ -27,6 +39,18 @@ function App() {
         <Route path="/send-message" element={<SendMessage />} />
         <Route path="/success-auction" element={<SuccessAuction />} />
         <Route path="/transaction" element={<Transaction />} />
+
+        <Route path="/cb-ad" element={<AdminLogin />} />
+        <Route path="/cb-ad/register" element={<AdminRegister />} />
+        <Route path="/cb-ad/admin-dashboard" element={<AdminDashboard />} />
+        <Route path="/cb-ad/banks" element={<AdminBanks />} />
+        <Route path="/cb-ad/in-auction" element={<AdminInAuction />} />
+        <Route path="/cb-ad/managers" element={<AdminManager />} />
+        <Route path="/cb-ad/messages" element={<AdminMessages />} />
+        <Route path="/cb-ad/transaction" element={<AdminTransaction />} />
+        <Route path="/cb-ad/users" element={<AdminUsers />} />
+        <Route path="/cb-ad/verifyauctions" element={<AdminVerifyAuction />} />
+        <Route path="/cb-ad/verifyusers" element={<AdminVerifyUser />} />
       </Routes>
     </Router>
   );

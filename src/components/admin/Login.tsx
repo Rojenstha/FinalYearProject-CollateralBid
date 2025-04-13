@@ -22,11 +22,11 @@ function Login() {
     console.log("Password:", password);
 
     axios
-      .post("http://localhost:5000/admin/login", { email, password })
+      .post("http://localhost:5000/api/admin/cb-login", { email, password })
       .then((result) => {
         console.log(result);
         if (result.data === "Success") {
-          navigate("/admin-dashboard");
+          navigate("/cb-ad/admin-dashboard");
         } else {
           setMessage(result.data || "Login Failed!");
         }

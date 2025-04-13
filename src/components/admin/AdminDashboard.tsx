@@ -23,7 +23,7 @@ function AdminDashboard() {
   const confirmLogout = () => {
     localStorage.removeItem("token");
     setShowLogoutPopup(false);
-    navigate("/");
+    navigate("/cb-ad");
   };
 
   const [managers, setManagers] = useState([]);
@@ -109,7 +109,7 @@ function AdminDashboard() {
           <ul className="nav nav-pills flex-column mb-auto">
             <li className="nav-item">
               <Link
-                to="/admin-dashboard"
+                to="/cb-ad/admin-dashboard"
                 className={`nav-link ${
                   active === "Home" ? "active" : "text-white"
                 }`}
@@ -120,7 +120,7 @@ function AdminDashboard() {
             </li>
             <li>
               <Link
-                to="/in-auction"
+                to="/cb-ad/in-auction"
                 className={`nav-link ${
                   active === "In-Auction" ? "active" : "text-white"
                 }`}
@@ -131,7 +131,7 @@ function AdminDashboard() {
             </li>
             <li>
               <Link
-                to="/transaction"
+                to="/cb-ad/transaction"
                 className={`nav-link ${
                   active === "Transactions" ? "active" : "text-white"
                 }`}
@@ -142,7 +142,7 @@ function AdminDashboard() {
             </li>
             <li>
               <Link
-                to="/banks"
+                to="/cb-ad/banks"
                 className={`nav-link ${
                   active === "Banks" ? "active" : "text-white"
                 }`}
@@ -153,7 +153,7 @@ function AdminDashboard() {
             </li>
             <li>
               <Link
-                to="/managers"
+                to="/cb-ad/managers"
                 className={`nav-link ${
                   active === "Managers" ? "active" : "text-white"
                 }`}
@@ -164,7 +164,7 @@ function AdminDashboard() {
             </li>
             <li>
               <Link
-                to="/users"
+                to="/cb-ad/users"
                 className={`nav-link ${
                   active === "Customers" ? "active" : "text-white"
                 }`}
@@ -175,7 +175,7 @@ function AdminDashboard() {
             </li>
             <li>
               <Link
-                to="/verifyauctions"
+                to="/cb-ad/verifyauctions"
                 className={`nav-link ${
                   active === "VerifyAuction" ? "active" : "text-white"
                 }`}
@@ -186,7 +186,7 @@ function AdminDashboard() {
             </li>
             <li>
               <Link
-                to="/verifyusers"
+                to="/cb-ad/verifyusers"
                 className={`nav-link ${
                   active === "VerifyUser" ? "active" : "text-white"
                 }`}
@@ -197,7 +197,7 @@ function AdminDashboard() {
             </li>
             <li>
               <Link
-                to="/messages"
+                to="/cb-ad/messages"
                 className={`nav-link ${
                   active === "Messages" ? "active" : "text-white"
                 }`}
@@ -245,7 +245,7 @@ function AdminDashboard() {
           {/* Statistics */}
           <div className="row g-4">
             <div className="col-12 col-md-4">
-              <Link to="/users">
+              <Link to="/cb-ad/users">
                 <div className="bg-secondary text-white p-3 rounded shadow-sm text-center">
                   <h4>
                     <People className="me-2" />
@@ -256,7 +256,7 @@ function AdminDashboard() {
               </Link>
             </div>
             <div className="col-12 col-md-4">
-              <Link to="/managers">
+              <Link to="/cb-ad/managers">
                 <div className="bg-secondary text-white p-3 rounded shadow-sm text-center">
                   <h4>
                     <People className="me-2" />
@@ -268,7 +268,7 @@ function AdminDashboard() {
             </div>
 
             <div className="col-12 col-md-4">
-              <Link to="/banks">
+              <Link to="/cb-ad/banks">
                 <div className="bg-secondary text-white p-3 rounded shadow-sm text-center">
                   <h4>
                     <Bank className="me-2" />
@@ -282,7 +282,7 @@ function AdminDashboard() {
 
           <div className="row g-4 mt-4">
             <div className="col-12 col-md-4">
-              <Link to="/verifyusers">
+              <Link to="/cb-ad/verifyusers">
                 <div className="bg-secondary text-white p-3 rounded shadow-sm text-center">
                   <h4>
                     <Check className="me-2" />
@@ -293,7 +293,7 @@ function AdminDashboard() {
               </Link>
             </div>
             <div className="col-12 col-md-4">
-              <Link to="/verifyauctions">
+              <Link to="/cb-ad/verifyauctions">
                 <div className="bg-secondary text-white p-3 rounded shadow-sm text-center">
                   <h4>
                     <GraphUpArrow className="me-2" />
@@ -304,7 +304,7 @@ function AdminDashboard() {
               </Link>
             </div>
             <div className="col-12 col-md-4">
-              <Link to="/transaction">
+              <Link to="/cb-ad/transaction">
                 <div className="bg-secondary text-white p-3 rounded shadow-sm text-center">
                   <h4>
                     <CreditCard className="me-2" />
@@ -318,7 +318,7 @@ function AdminDashboard() {
 
           <div className="row g-4 mt-4">
             <div className="col-12 col-md-4">
-              <Link to="/in-auction">
+              <Link to="/cb-ad/in-auction">
                 <div className="bg-success text-white p-3 rounded shadow-sm text-center">
                   <h4>
                     <Grid className="me-2" />
@@ -329,7 +329,7 @@ function AdminDashboard() {
               </Link>
             </div>
             <div className="col-12 col-md-4">
-              <Link to="/messages">
+              <Link to="/cb-ad/messages">
                 <div className="bg-primary text-white p-3 rounded shadow-sm text-center">
                   <h4>
                     <ChatDots className="me-2" />

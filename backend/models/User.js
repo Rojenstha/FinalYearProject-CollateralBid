@@ -17,6 +17,7 @@ const UserSchema = new mongoose.Schema(
       type: String,
       required: [true, "Please add a password"],
     },
+    phone: Number,
     role: {
       type: String,
       default: "buyer",

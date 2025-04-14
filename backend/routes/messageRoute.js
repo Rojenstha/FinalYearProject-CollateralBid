@@ -4,6 +4,6 @@ const messageController = require('../controllers/messageController');
 const { isAdmin, protect }= require("../middleWare/authMiddleWare")
 
 router.post("/", messageController.sendMessage);
-router.get("/messages", protect, isAdmin ,messageController.allMessage);
+router.get("/messages", messageController.allMessage);
 
 module.exports = router;

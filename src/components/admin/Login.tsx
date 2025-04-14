@@ -25,7 +25,7 @@ function Login() {
       .post("http://localhost:5000/api/admin/cb-login", { email, password })
       .then((result) => {
         console.log(result);
-        if (result.data === "Success") {
+        if (result.data.success) {
           navigate("/cb-ad/admin-dashboard");
         } else {
           setMessage(result.data || "Login Failed!");

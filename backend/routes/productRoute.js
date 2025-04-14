@@ -5,19 +5,18 @@ const { upload } = require("../utils/fileUpload")
 const router = express.Router();
 
 router.get("/", getAllProducts);
-router.get("/sold", getAllSoldProducts);
+router.get("/sold", protect, isManager, getAllSoldProducts);
+router.get("/manager", protect, isManager,getAllProductsofUser);
+
+router.get("/admin/products", protect, isAdmin, getAllProductsByAdmin);
+router.patch("/admin/product-verified/:id", protect, isAdmin, verifyAndAddCommissionProductByAdmin);
+router.delete("/admin/", protect, isAdmin, deleteProductsByAdmin);
+
 router.get("/:id", getProduct);
 
 router.post("/create", protect, isManager, upload.single("image"), createProduct);
 router.delete("/:id", protect, isManager, deleteProduct);
 router.put("/:id", protect, isManager, upload.single("image"), updateProduct);
 
-
-router.get("/manager", protect, getAllProductsofUser)
-
-//for admin
-router.patch("/admin/product-verified/:id", protect, isAdmin, verifyAndAddCommissionProductByAdmin);
-router.get("/admin/products", protect, isAdmin, getAllProductsByAdmin);
-router.delete("/admin/", protect, isAdmin, deleteProductsByAdmin);
 
 module.exports = router;

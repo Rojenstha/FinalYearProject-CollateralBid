@@ -1,17 +1,18 @@
 import React, { useState } from "react";
-import axios from "axios";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    setMessage("");
+    setError("");
 
-    // Call the API to send the password reset email
     try {
       const response = await fetch(
-        "http://localhost:5000/send-password-reset-email",
+        "http://localhost:5000/api/user/forgot-password",
         {
           method: "POST",
           headers: {
@@ -22,15 +23,14 @@ const ForgotPassword = () => {
       );
 
       const data = await response.json();
-      if (data.success) {
-        setMessage(
-          "A password reset email has been sent if the email exists in our records."
-        );
+
+      if (response.ok) {
+        setMessage(data.message || "Reset email sent successfully.");
       } else {
-        setMessage("There was an error. Please try again.");
+        setError(data.message || "There was an error. Please try again.");
       }
-    } catch (error) {
-      setMessage("There was an error. Please try again.");
+    } catch (err) {
+      setError("Something went wrong. Please try again.");
     }
   };
 
@@ -39,14 +39,25 @@ const ForgotPassword = () => {
       <div className="row justify-content-center">
         <div className="col-md-5">
           <div className="card shadow-lg p-4">
-            <h2 className="text-center mb-4">Forgot Password?</h2>
+            <a className="text-center mb-4" href="#">
+              <img
+                src="/src/assets/logo.png"
+                alt="Bootstrap"
+                width="100"
+                height="45"
+              />
+            </a>
+            <h2 className="text-center mb-4">
+              CollateralBid- Forgot Password?
+            </h2>
 
-            {message && <p className="alert alert-info">{message}</p>}
+            {message && <p className="alert alert-success">{message}</p>}
+            {error && <p className="alert alert-danger">{error}</p>}
 
             <form onSubmit={handleSubmit}>
               <div className="mb-3">
                 <label className="form-label">
-                  Enter your email to send a Verification Code
+                  Enter your email to send a Verification Link
                 </label>
                 <input
                   type="email"

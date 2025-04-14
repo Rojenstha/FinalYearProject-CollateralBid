@@ -1,21 +1,41 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Dropdown, Modal, Button } from "react-bootstrap";
+import { Modal, Button, Table, Badge } from "react-bootstrap";
 import {
-  House,
-  Grid,
   People,
   GraphUp,
-  CreditCard,
-  Bank,
-  ChatDots,
   Check,
+  XCircle,
+  PlusCircle,
 } from "react-bootstrap-icons";
+import axios from "axios";
+import Sidebar from "./AdminNav";
 
-function InAuction() {
+function Users() {
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [actionType, setActionType] = useState<
+    "delete" | "verify" | "unverify" | null
+  >(null);
   const [active, setActive] = useState("In-Auction");
   const [showLogoutPopup, setShowLogoutPopup] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await axios.get("http://localhost:5000/api/user/users");
+      setUsers(response.data);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
 
   const handleLogout = () => setShowLogoutPopup(true);
   const confirmLogout = () => {
@@ -24,151 +44,55 @@ function InAuction() {
     navigate("/");
   };
 
+  const handleActionConfirm = (
+    userId: string,
+    type: "delete" | "verify" | "unverify"
+  ) => {
+    setSelectedUserId(userId);
+    setActionType(type);
+    setShowConfirmModal(true);
+  };
+
+  const handleActionExecute = async () => {
+    if (!selectedUserId || !actionType) return;
+
+    try {
+      if (actionType === "verify") {
+        await axios.patch(
+          `http://localhost:5000/api/user/verify/${selectedUserId}`
+        );
+        setMessage("User successfully verified.");
+      } else if (actionType === "unverify") {
+        await axios.patch(
+          `http://localhost:5000/api/user/unverify/${selectedUserId}`
+        );
+        setMessage("User verification removed.");
+      } else if (actionType === "delete") {
+        await axios.delete(
+          `http://localhost:5000/api/user/delete/${selectedUserId}`
+        );
+        setMessage("User successfully deleted.");
+      }
+      fetchUsers();
+    } catch (error) {
+      setMessage("An error occurred during the action.");
+      console.error(`Error during ${actionType}:`, error);
+    } finally {
+      setShowConfirmModal(false);
+      setSelectedUserId(null);
+      setActionType(null);
+    }
+  };
+
   return (
     <>
       <div className="d-flex">
-        {/* Sidebar */}
-        <div
-          className="d-flex flex-column flex-shrink-0 p-3 bg-dark text-white"
-          style={{ width: "250px", height: "100vh" }}
-        >
-          <Link
-            to=""
-            className="d-flex align-items-center mb-3 text-white text-decoration-none"
-          >
-            <img
-              src="/src/assets/logo2.png"
-              alt="Logo"
-              width="211"
-              height="72"
-            />
-          </Link>
-          <hr />
-          <ul className="nav nav-pills flex-column mb-auto">
-            <li className="nav-item">
-              <Link
-                to="/admin-dashboard"
-                className={`nav-link ${
-                  active === "Home" ? "active" : "text-white"
-                }`}
-                onClick={() => setActive("Home")}
-              >
-                <House className="me-2" /> Home
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/in-auction"
-                className={`nav-link ${
-                  active === "In-Auction" ? "active" : "text-white"
-                }`}
-                onClick={() => setActive("In-Auction")}
-              >
-                <Grid className="me-2" /> In-Auction
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/transaction"
-                className={`nav-link ${
-                  active === "Transactions" ? "active" : "text-white"
-                }`}
-                onClick={() => setActive("Transactions")}
-              >
-                <CreditCard className="me-2" /> Transactions
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/banks"
-                className={`nav-link ${
-                  active === "Banks" ? "active" : "text-white"
-                }`}
-                onClick={() => setActive("Banks")}
-              >
-                <Bank className="me-2" /> Associated Banks
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/managers"
-                className={`nav-link ${
-                  active === "Managers" ? "active" : "text-white"
-                }`}
-                onClick={() => setActive("Managers")}
-              >
-                <People className="me-2" /> Managers
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/users"
-                className={`nav-link ${
-                  active === "Customers" ? "active" : "text-white"
-                }`}
-                onClick={() => setActive("Customers")}
-              >
-                <People className="me-2" /> Customers
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/verifyauctions"
-                className={`nav-link ${
-                  active === "VerifyAuction" ? "active" : "text-white"
-                }`}
-                onClick={() => setActive("VerifyAuction")}
-              >
-                <GraphUp className="me-2" /> Verfiy Auction
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/verifyusers"
-                className={`nav-link ${
-                  active === "VerifyUser" ? "active" : "text-white"
-                }`}
-                onClick={() => setActive("VerifyUser")}
-              >
-                <Check className="me-2" /> Verify Users
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/messages"
-                className={`nav-link ${
-                  active === "Messages" ? "active" : "text-white"
-                }`}
-                onClick={() => setActive("Messages")}
-              >
-                <ChatDots className="me-2" /> Messages
-              </Link>
-            </li>
-          </ul>
-          <hr />
-          <Dropdown>
-            <Dropdown.Toggle
-              variant="dark"
-              className="d-flex align-items-center text-white border-0"
-            >
-              <strong>Admin</strong>
-            </Dropdown.Toggle>
-            <Dropdown.Menu className="bg-dark text-white">
-              <Dropdown.Item as={Link} to="/" className="text-secondary">
-                Change Username
-              </Dropdown.Item>
-              <Dropdown.Item as={Link} to="/" className="text-secondary">
-                Change Password
-              </Dropdown.Item>
-              <Dropdown.Divider />
-              <Dropdown.Item onClick={handleLogout} className="text-danger">
-                Sign out
-              </Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
-        </div>
+        <Sidebar
+          active={active}
+          setActive={setActive}
+          onLogout={handleLogout}
+        />
 
-        {/* Main Content */}
         <div className="p-4 w-100">
           <h1>Welcome to Admin Dashboard</h1>
           <p>
@@ -179,84 +103,85 @@ function InAuction() {
             <GraphUp className="me-4" />
             Insight Statistics <hr />
           </h2>
-
-          {/* Statistics */}
+          {message && (
+            <div className="alert alert-info mt-4">
+              <strong>{message}</strong>
+            </div>
+          )}
           <div className="row g-4">
-            <div className="col-12 col-md-4">
-              <Link to="/users">
+            <div className="col-12 col-md-6">
+              <Link to="/cb-ad/users">
                 <div className="bg-secondary text-white p-3 rounded shadow-sm text-center">
                   <h4>
                     <People className="me-2" />
-                    Users
+                    Total Users
                   </h4>
-                  <h2>25</h2>
-                </div>
-              </Link>
-            </div>
-            <div className="col-12 col-md-4">
-              <Link to="/managers">
-                <div className="bg-secondary text-white p-3 rounded shadow-sm text-center">
-                  <h4>
-                    <People className="me-2" />
-                    Managers
-                  </h4>
-                  <h2>12</h2>
+                  <h2>{users.length}</h2>
                 </div>
               </Link>
             </div>
 
-            <div className="col-12 col-md-4">
-              <Link to="/banks">
-                <div className="bg-secondary text-white p-3 rounded shadow-sm text-center">
-                  <h4>
-                    <Bank className="me-2" />
-                    Associated Banks
-                  </h4>
-                  <h2>10</h2>
-                </div>
-              </Link>
-            </div>
-          </div>
-
-          <div className="row g-4 mt-4">
-            <div className="col-12 col-md-4">
-              <Link to="/in-auction">
+            <div className="col-12 col-md-6">
+              <Link to="/verifyusers">
                 <div className="bg-success text-white p-3 rounded shadow-sm text-center">
                   <h4>
-                    <Grid className="me-2" />
-                    Number of Auctions
+                    <Check className="me-2" />
+                    Verified Users
                   </h4>
-                  <h2>350</h2>
-                </div>
-              </Link>
-            </div>
-            <div className="col-12 col-md-4">
-              <Link to="/transaction">
-                <div className="bg-secondary text-white p-3 rounded shadow-sm text-center">
-                  <h4>
-                    <CreditCard className="me-2" />
-                    Transactions Made
-                  </h4>
-                  <h2>8</h2>
-                </div>
-              </Link>
-            </div>
-            <div className="col-12 col-md-4">
-              <Link to="/messages">
-                <div className="bg-primary text-white p-3 rounded shadow-sm text-center">
-                  <h4>
-                    <ChatDots className="me-2" />
-                    Messages
-                  </h4>
-                  <h2>15</h2>
+                  <h2>{users.filter((user) => user.isVerified).length}</h2>
                 </div>
               </Link>
             </div>
           </div>
+
+          <Table striped bordered hover className="mt-4">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Verified</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users
+                .filter((user) => user.isVerified)
+                .map((user) => (
+                  <tr key={user._id}>
+                    <td>{user.name}</td>
+                    <td>{user.phone}</td>
+                    <td>{user.email}</td>
+                    <td>
+                      <Badge bg="success">Verified</Badge>
+                    </td>
+                    <td>
+                      <Button
+                        variant="outline-warning"
+                        size="sm"
+                        onClick={() =>
+                          handleActionConfirm(user._id, "unverify")
+                        }
+                      >
+                        <XCircle className="me-2" />
+                        Unverify
+                      </Button>{" "}
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        onClick={() => handleActionConfirm(user._id, "delete")}
+                      >
+                        <XCircle className="me-2" />
+                        Ban
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </Table>
         </div>
       </div>
 
-      {/* Logout Confirmation Modal */}
       <Modal show={showLogoutPopup} onHide={() => setShowLogoutPopup(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Confirm Logout</Modal.Title>
@@ -271,8 +196,39 @@ function InAuction() {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      <Modal show={showConfirmModal} onHide={() => setShowConfirmModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            Confirm {actionType?.charAt(0).toUpperCase() + actionType?.slice(1)}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Are you sure you want to <strong>{actionType}</strong> this user?
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => setShowConfirmModal(false)}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant={
+              actionType === "delete"
+                ? "danger"
+                : actionType === "verify"
+                ? "success"
+                : "warning"
+            }
+            onClick={handleActionExecute}
+          >
+            Confirm
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </>
   );
 }
 
-export default InAuction;
+export default Users;

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import Cookies from "js-cookie"; // ⬅️ new
+
 import "bootstrap/dist/css/bootstrap.min.css";
 
 const Login = () => {
@@ -28,21 +30,26 @@ const Login = () => {
     try {
       const loginData = showBankField
         ? formData
-        : { email: formData.email, password: formData.password }; // ✅ Send only necessary fields
+        : { email: formData.email, password: formData.password };
 
       const response = await axios.post(
         "http://localhost:5000/api/user/login",
-        loginData
+        loginData,
+        { withCredentials: true }
       );
 
-      setMessage(response.data.message);
-      localStorage.setItem("token", response.data.token);
+      const { token, userInfo, message, userType } = response.data;
 
-      if (response.data.isManager) {
-        navigate("/manager-dashboard");
-      } else {
-        navigate("/user-dashboard");
-      }
+      setMessage(message);
+      localStorage.setItem("token", token);
+      localStorage.setItem("userInfo", JSON.stringify(userInfo));
+
+      Cookies.set("token", token, { expires: 1 });
+      Cookies.set("userInfo", encodeURIComponent(JSON.stringify(userInfo)), {
+        expires: 1,
+      });
+
+      navigate(userType === "manager" ? "/manager-dashboard" : "/home");
     } catch (error: any) {
       setMessage(error.response?.data?.error || "Login failed");
     }
@@ -112,6 +119,9 @@ const Login = () => {
                     onChange={handleChange}
                     required
                   />
+                  <p className="text-center mt-3">
+                    <Link to="/forgotbankcode">Forgot Bank Code?</Link>
+                  </p>
                 </div>
               )}
 
@@ -119,6 +129,7 @@ const Login = () => {
                 Login
               </button>
             </form>
+
             <p className="text-center mt-3">
               <Link to="/forgotpassword">Forgot Password?</Link>
             </p>

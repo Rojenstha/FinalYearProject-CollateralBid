@@ -11,7 +11,9 @@ const ManagerSchema = new mongoose.Schema(
     balance: {
         type: Number,
         default: 0,
-      },
+      },    
+      resetPasswordToken: String,
+      resetPasswordExpire: Date,
     },
     {
       timestamps: true,

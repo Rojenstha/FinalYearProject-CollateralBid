@@ -1,18 +1,15 @@
-import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import React, { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [token, setToken] = useState("");
   const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [resetSuccess, setResetSuccess] = useState(false);
 
-  const location = useLocation();
-
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    setToken(params.get("token") || "");
-  }, [location]);
+  const { token } = useParams();
+  const navigate = useNavigate();
 
   const handlePasswordChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(event.target.value);
@@ -26,57 +23,102 @@ const ResetPassword = () => {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    setMessage("");
+    setError("");
 
     if (password !== confirmPassword) {
-      setMessage("Passwords do not match");
+      setError("Passwords do not match");
       return;
     }
 
     try {
-      const response = await fetch("http://localhost:5000/reset-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ token, password }),
-      });
+      const response = await fetch(
+        `http://localhost:5000/api/manager/reset-bank/${token}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ password }),
+        }
+      );
 
       const data = await response.json();
-      if (data.success) {
-        setMessage("Password reset successfully");
+
+      if (response.ok) {
+        setMessage(data.message || "Password reset successfully.");
+        setResetSuccess(true);
       } else {
-        setMessage("Error resetting password");
+        setError(data.message || "Error resetting password.");
       }
     } catch (error) {
-      setMessage("Error resetting password");
+      setError("Something went wrong. Please try again.");
     }
   };
 
+  const goToLogin = () => {
+    navigate("/login");
+  };
+
   return (
-    <div>
-      <h2>Reset Your Password</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>New Password:</label>
-          <input
-            type="password"
-            value={password}
-            onChange={handlePasswordChange}
-            required
-          />
+    <div className="container mt-5">
+      <div className="row justify-content-center">
+        <div className="col-md-5">
+          <div className="card shadow-lg p-4">
+            <a className="text-center mb-4" href="#">
+              <img
+                src="/src/assets/logo.png"
+                alt="Bootstrap"
+                width="100"
+                height="45"
+              />
+            </a>
+
+            <h2 className="text-center mb-4">
+              CollateralBid- Reset Your Password
+            </h2>
+
+            {message && <p className="alert alert-success">{message}</p>}
+            {error && <p className="alert alert-danger">{error}</p>}
+
+            <form onSubmit={handleSubmit}>
+              <div className="mb-3">
+                <label className="form-label">New Password</label>
+                <input
+                  type="password"
+                  className="form-control"
+                  value={password}
+                  onChange={handlePasswordChange}
+                  required
+                />
+              </div>
+              <div className="mb-3">
+                <label className="form-label">Confirm Password</label>
+                <input
+                  type="password"
+                  className="form-control"
+                  value={confirmPassword}
+                  onChange={handleConfirmPasswordChange}
+                  required
+                />
+              </div>
+
+              <button type="submit" className="btn btn-primary w-100">
+                Reset Password
+              </button>
+            </form>
+
+            {resetSuccess && (
+              <button
+                onClick={goToLogin}
+                className="btn btn-outline-success mt-3 w-100"
+              >
+                Go to Login
+              </button>
+            )}
+          </div>
         </div>
-        <div>
-          <label>Confirm Password:</label>
-          <input
-            type="password"
-            value={confirmPassword}
-            onChange={handleConfirmPasswordChange}
-            required
-          />
-        </div>
-        <button type="submit">Reset Password</button>
-      </form>
-      {message && <p>{message}</p>}
+      </div>
     </div>
   );
 };

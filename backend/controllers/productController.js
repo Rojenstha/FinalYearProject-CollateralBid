@@ -4,6 +4,7 @@ const fs = require("fs")
 const slugify = require("slugify");
 const cloudinary = require("cloudinary").v2
 const Product = require("../models/productModel")
+const BiddingProduct = require("../models/biddingModel");
 
 
 const createProduct = asyncHandler(async(req, res) => {
@@ -76,10 +77,25 @@ const createProduct = asyncHandler(async(req, res) => {
 });
 
 const getAllProducts = asyncHandler(async (req, res) => {
-  const products = await Product.find({}).sort("-createdAt").populate("user");
+  const products = await Product.find({})
+    .sort("-createdAt")
+    .populate("user");
 
-  res.json(products);
+  const enrichedProducts = await Promise.all(
+    products.map(async (product) => {
+      const highestBid = await BiddingProduct.findOne({ product: product._id })
+        .sort({ price: -1 }); // find highest bid
+
+      return {
+        ...product._doc,
+        currentBid: highestBid ? highestBid.price : product.price, // default to base price
+      };
+    })
+  );
+
+  res.status(200).json(enrichedProducts);
 });
+
  
 const deleteProduct = asyncHandler(async (req, res) => {
   const { id } = req.params;
@@ -193,23 +209,19 @@ const updateProduct = asyncHandler(async (req, res) => {
 });
 
 const getAllProductsofUser = asyncHandler(async (req, res) => {
-  const userId = req.user._id;
 
-  const products = await Product.find({ user: userId }).sort("-createdAt").populate("user");
+  const productsWithPrices = await Promise.all(
+    products.map(async (product) => {
+      const latestBid = await BiddingProduct.findOne({ product: product._id }).sort("-createdAt");
+      const biddingPrice = latestBid ? latestBid.price : product.price;
+      return {
+        ...product._doc,
+        biddingPrice, // Adding the price field
+      };
+    })
+  );
 
-  res.json(products);
-  // const productsWithPrices = await Promise.all(
-  //   products.map(async (product) => {
-  //     const latestBid = await BiddingProduct.findOne({ product: product._id }).sort("-createdAt");
-  //     const biddingPrice = latestBid ? latestBid.price : product.price;
-  //     return {
-  //       ...product._doc,
-  //       biddingPrice, // Adding the price field
-  //     };
-  //   })
-  // );
-
-  // res.status(200).json(productsWithPrices);
+  res.status(200).json(productsWithPrices);
 
 });
 
@@ -234,24 +246,20 @@ const verifyAndAddCommissionProductByAdmin = asyncHandler(async(req, res) => {
 });
 
 const getAllProductsByAdmin = asyncHandler(async(req, res) => {
-  // const products = await Product.find({}).sort("-createdAt").populate("user");
-
-  // const productsWithPrices = await Promise.all(
-  //   products.map(async (product) => {
-  //     const latestBid = await BiddingProduct.findOne({ product: product._id }).sort("-createdAt");
-  //     const biddingPrice = latestBid ? latestBid.price : product.price;
-  //     return {
-  //       ...product._doc,
-  //       biddingPrice, // Adding the price field
-  //     };
-  //   })
-  // );
-
-  // res.status(200).json(productsWithPrices);
-
   const products = await Product.find({}).sort("-createdAt").populate("user");
 
-  res.json(products);
+  const productsWithPrices = await Promise.all(
+    products.map(async (product) => {
+      const latestBid = await BiddingProduct.findOne({ product: product._id }).sort("-createdAt");
+      const biddingPrice = latestBid ? latestBid.price : product.price;
+      return {
+        ...product._doc,
+        biddingPrice, // Adding the price field
+      };
+    })
+  );
+
+  res.status(200).json(productsWithPrices);
 });
 
 const deleteProductsByAdmin = asyncHandler(async (req, res) => {

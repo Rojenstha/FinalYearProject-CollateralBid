@@ -1,14 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const { registerManager, updateManager, deleteManager, getAllManagers } = require('../controllers/managerController');
+const { registerManager, updateManager, deleteManager, getAllManagers, forgotBank, resetBank } = require('../controllers/managerController');
 const { protect, isAdmin } = require("../middleWare/authMiddleWare")
 
-router.get("/allmanagers", protect, isAdmin,getAllManagers);
+router.get("/allmanagers",getAllManagers);
+router.post("/forgot-bank", forgotBank);
+router.post("/reset-bank/:token", resetBank);
 
-router.post("/register", protect, isAdmin,registerManager);
 
-router.put("/:id", protect, isAdmin,updateManager);
+router.post("/register", registerManager);
 
-router.delete("/del/:id", protect, isAdmin,deleteManager);
+router.put("/:id",updateManager);
+
+router.delete("/del/:id", deleteManager);
 
 module.exports = router;

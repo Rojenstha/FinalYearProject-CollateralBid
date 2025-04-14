@@ -1,57 +1,47 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import {
-  Dropdown,
-  Modal,
-  Button,
-  Form,
-  InputGroup,
-  Table,
-} from "react-bootstrap";
-import {
-  House,
-  Grid,
-  People,
-  GraphUp,
-  CreditCard,
-  Bank,
-  ChatDots,
-  PlusCircle,
-  Check,
-} from "react-bootstrap-icons";
+import { Modal, Button, Form, InputGroup, Table } from "react-bootstrap";
+import { Bank, People, GraphUp, PlusCircle } from "react-bootstrap-icons";
 import axios from "axios";
+import Sidebar from "./AdminNav";
 
 function Banks() {
   const [active, setActive] = useState("Banks");
   const [showLogoutPopup, setShowLogoutPopup] = useState(false);
   const [showAddPopup, setShowAddPopup] = useState(false);
+  const [showEditPopup, setShowEditPopup] = useState(false);
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
   const navigate = useNavigate();
   const [message, setMessage] = useState("");
 
-  const [banks, setBanks] = useState([]);
+  const [banks, setBanks] = useState<any[]>([]);
+  const [managers, setManagers] = useState<any[]>([]);
+
+  const [name, setName] = useState("");
+  const [code, setCode] = useState("");
+  const [contact, setContact] = useState("");
+  const [bankToEdit, setBankToEdit] = useState<any | null>(null);
+  const [bankToDelete, setBankToDelete] = useState<any | null>(null);
 
   useEffect(() => {
     fetchBanks();
+    fetchManagers();
   }, []);
 
   const fetchBanks = async () => {
     try {
-      const response = await axios.get("http://localhost:3001/allbanks");
+      const response = await axios.get("http://localhost:5000/api/bank/bank");
       setBanks(response.data);
     } catch (error) {
-      console.error("Error fetching managers:", error);
+      console.error("Error fetching banks:", error);
     }
   };
 
-  const [managers, setManagers] = useState([]);
-
-  useEffect(() => {
-    fetchManagers();
-  }, []);
-
   const fetchManagers = async () => {
     try {
-      const response = await axios.get("http://localhost:3001/allmanagers");
+      const response = await axios.get(
+        "http://localhost:5000/api/manager/allmanagers"
+      );
       setManagers(response.data);
     } catch (error) {
       console.error("Error fetching managers:", error);
@@ -65,169 +55,82 @@ function Banks() {
     navigate("/");
   };
 
-  const [name, setName] = useState("");
-  const [code, setCode] = useState("");
-  const [contact, setContact] = useState("");
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await axios.post("http://localhost:3001/registerbank", {
-        name,
-        code,
-        contact,
-      });
+      const response = await axios.post(
+        "http://localhost:5000/api/bank/register",
+        {
+          name,
+          code,
+          contact,
+        }
+      );
       setMessage(response.data.message);
+      fetchBanks();
     } catch (error: any) {
       setMessage(error.response?.data?.error || "Registration Failed.");
+    }
+  };
+
+  const handleEditClick = (bank: any) => {
+    setBankToEdit(bank);
+    setName(bank.name);
+    setCode(bank.code);
+    setContact(bank.contact);
+    setShowEditPopup(true);
+  };
+
+  const handleDeleteClick = (bank: any) => {
+    setBankToDelete(bank);
+    setShowDeletePopup(true);
+  };
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bankToEdit) return;
+    try {
+      const response = await axios.put(
+        `http://localhost:5000/api/bank/${bankToEdit._id}`,
+        {
+          name,
+          code,
+          contact,
+        }
+      );
+      setMessage("Bank updated successfully.");
+      setShowEditPopup(false);
+      fetchBanks();
+    } catch (error: any) {
+      setMessage("Failed to update bank.");
+      console.error("Error updating bank:", error);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!bankToDelete) return;
+    try {
+      await axios.delete(
+        `http://localhost:5000/api/bank/del/${bankToDelete._id}`
+      );
+      setMessage("Bank deleted successfully.");
+      setShowDeletePopup(false);
+      fetchBanks();
+    } catch (error: any) {
+      setMessage("Failed to delete bank.");
+      console.error("Error deleting bank:", error);
     }
   };
 
   return (
     <>
       <div className="d-flex">
-        {/* Sidebar */}
-        <div
-          className="d-flex flex-column flex-shrink-0 p-3 bg-dark text-white"
-          style={{ width: "250px", height: "100vh" }}
-        >
-          <Link
-            to=""
-            className="d-flex align-items-center mb-3 text-white text-decoration-none"
-          >
-            <img
-              src="/src/assets/logo2.png"
-              alt="Logo"
-              width="211"
-              height="72"
-            />
-          </Link>
-          <hr />
-          <ul className="nav nav-pills flex-column mb-auto">
-            <li className="nav-item">
-              <Link
-                to="/admin-dashboard"
-                className={`nav-link ${
-                  active === "Home" ? "active" : "text-white"
-                }`}
-                onClick={() => setActive("Home")}
-              >
-                <House className="me-2" /> Home
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/in-auction"
-                className={`nav-link ${
-                  active === "In-Auction" ? "active" : "text-white"
-                }`}
-                onClick={() => setActive("In-Auction")}
-              >
-                <Grid className="me-2" /> In-Auction
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/transaction"
-                className={`nav-link ${
-                  active === "Transactions" ? "active" : "text-white"
-                }`}
-                onClick={() => setActive("Transactions")}
-              >
-                <CreditCard className="me-2" /> Transactions
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/banks"
-                className={`nav-link ${
-                  active === "Banks" ? "active" : "text-white"
-                }`}
-                onClick={() => setActive("Banks")}
-              >
-                <Bank className="me-2" /> Associated Banks
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/managers"
-                className={`nav-link ${
-                  active === "Managers" ? "active" : "text-white"
-                }`}
-                onClick={() => setActive("Managers")}
-              >
-                <People className="me-2" /> Managers
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/users"
-                className={`nav-link ${
-                  active === "Customers" ? "active" : "text-white"
-                }`}
-                onClick={() => setActive("Customers")}
-              >
-                <People className="me-2" /> Customers
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/verifyauctions"
-                className={`nav-link ${
-                  active === "VerifyAuction" ? "active" : "text-white"
-                }`}
-                onClick={() => setActive("VerifyAuction")}
-              >
-                <GraphUp className="me-2" /> Verfiy Auction
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/verifyusers"
-                className={`nav-link ${
-                  active === "VerifyUser" ? "active" : "text-white"
-                }`}
-                onClick={() => setActive("VerifyUser")}
-              >
-                <Check className="me-2" /> Verify Users
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/messages"
-                className={`nav-link ${
-                  active === "Messages" ? "active" : "text-white"
-                }`}
-                onClick={() => setActive("Messages")}
-              >
-                <ChatDots className="me-2" /> Messages
-              </Link>
-            </li>
-          </ul>
-          <hr />
-          <Dropdown>
-            <Dropdown.Toggle
-              variant="dark"
-              className="d-flex align-items-center text-white border-0"
-            >
-              <strong>Admin</strong>
-            </Dropdown.Toggle>
-            <Dropdown.Menu className="bg-dark text-white">
-              <Dropdown.Item as={Link} to="/" className="text-secondary">
-                Change Username
-              </Dropdown.Item>
-              <Dropdown.Item as={Link} to="/" className="text-secondary">
-                Change Password
-              </Dropdown.Item>
-              <Dropdown.Divider />
-              <Dropdown.Item onClick={handleLogout} className="text-danger">
-                Sign out
-              </Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
-        </div>
+        <Sidebar
+          active={active}
+          setActive={setActive}
+          onLogout={handleLogout}
+        />
 
-        {/* Main Content */}
         <div className="p-4 w-100">
           <h1>Welcome to Admin Dashboard</h1>
           <p>
@@ -238,11 +141,10 @@ function Banks() {
             <GraphUp className="me-4" />
             Insight Statistics <hr />
           </h2>
-
-          {/* Statistics */}
+          {message && <p className="alert alert-info">{message}</p>}
           <div className="row g-4">
             <div className="col-12 col-md-6">
-              <Link to="/banks">
+              <Link to="/cb-ad/banks">
                 <div className="bg-secondary text-white p-3 rounded shadow-sm text-center">
                   <h4>
                     <Bank className="me-2" />
@@ -253,7 +155,7 @@ function Banks() {
               </Link>
             </div>
             <div className="col-12 col-md-6">
-              <Link to="/managers">
+              <Link to="/cb-ad/managers">
                 <div className="bg-secondary text-white p-3 rounded shadow-sm text-center">
                   <h4>
                     <People className="me-2" />
@@ -264,7 +166,7 @@ function Banks() {
               </Link>
             </div>
           </div>
-          {/* Add Manager Button */}
+
           <Button
             variant="primary"
             className="mt-4 d-flex align-items-center"
@@ -274,13 +176,13 @@ function Banks() {
             <Bank className="me-2" />
           </Button>
 
-          {/* Banks Table */}
           <Table striped bordered hover className="mt-4">
             <thead>
               <tr>
                 <th>Bank Name</th>
                 <th>Bank Code</th>
                 <th>Contact</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -291,16 +193,16 @@ function Banks() {
                   <td>{bank.contact}</td>
                   <td>
                     <Button
-                      variant="warning"
+                      variant="outline-warning"
                       size="sm"
-                      onClick={() => handleEditClick(manager)}
+                      onClick={() => handleEditClick(bank)}
                     >
                       Edit
                     </Button>{" "}
                     <Button
-                      variant="danger"
+                      variant="outline-danger"
                       size="sm"
-                      onClick={() => handleDelete(manager._id)}
+                      onClick={() => handleDeleteClick(bank)}
                     >
                       Delete
                     </Button>
@@ -328,9 +230,10 @@ function Banks() {
         </Modal.Footer>
       </Modal>
 
+      {/* Add Bank Modal */}
       <Modal show={showAddPopup} onHide={() => setShowAddPopup(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>Add New Manager</Modal.Title>
+          <Modal.Title>Add New Bank</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {message && <p className="alert alert-info">{message}</p>}
@@ -383,6 +286,77 @@ function Banks() {
             </Button>
           </Form>
         </Modal.Body>
+      </Modal>
+
+      {/* Edit Bank Modal */}
+      <Modal show={showEditPopup} onHide={() => setShowEditPopup(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Edit Bank</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form onSubmit={handleUpdate}>
+            <Form.Group className="mb-3">
+              <Form.Label>Bank Name</Form.Label>
+              <Form.Control
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Phone Number</Form.Label>
+              <InputGroup>
+                <InputGroup.Text>+977</InputGroup.Text>
+                <Form.Control
+                  type="text"
+                  value={contact}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, "");
+                    if (value.length <= 10) {
+                      setContact(value);
+                    }
+                  }}
+                  required
+                />
+              </InputGroup>
+              {contact.length !== 10 && contact.length > 0 && (
+                <p className="text-danger mt-1">
+                  Phone number must be 10 digits
+                </p>
+              )}
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Bank Code</Form.Label>
+              <Form.Control
+                type="text"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                required
+              />
+            </Form.Group>
+            <Button variant="success" type="submit">
+              Update
+            </Button>
+          </Form>
+        </Modal.Body>
+      </Modal>
+
+      {/* Delete Bank Confirmation Modal */}
+      <Modal show={showDeletePopup} onHide={() => setShowDeletePopup(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Deletion</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>Are you sure you want to delete this bank?</Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDeletePopup(false)}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={handleDelete}>
+            Delete
+          </Button>
+        </Modal.Footer>
       </Modal>
     </>
   );

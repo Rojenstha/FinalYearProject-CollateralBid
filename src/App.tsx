@@ -1,10 +1,23 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
+
+axios.defaults.withCredentials = true;
+
 import Login from "./components/Login";
 import Signup from "./components/Signup";
-import UserDashboard from "./components/UserDashboard";
-import Landing from "./components/Landing";
+import Home from "./components/user/Home";
+
+import Landing from "./components/landing/Landing";
 import ForgotPassword from "./components/ForgotPassword";
+import ForgotBank from "./components/forgotbankcode";
+import ResetPassword from "./components/ResetPassword";
+import ResetBank from "./components/resetBank";
+
+import UserDashboard from "./components/user/UserDashboard";
+
+import AuctionCard from "./components/Products/AuctionCard";
+import ProductDetail from "./components/Products/ProductDetails";
+
 import ManagerDashboard from "./components/manager/ManagerDashboard";
 import InAuction from "./components/manager/InAuction";
 import ManagerNotification from "./components/manager/Notifications";
@@ -23,6 +36,8 @@ import AdminTransaction from "./components/admin/Transaction";
 import AdminUsers from "./components/admin/Users";
 import AdminVerifyAuction from "./components/admin/VerifyAuction";
 import AdminVerifyUser from "./components/admin/VerifyUser";
+import axios from "axios";
+import { AuthProvider } from "./components/AuthContext";
 
 function App() {
   return (
@@ -32,7 +47,16 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgotpassword" element={<ForgotPassword />} />
+        <Route path="/forgotbankcode" element={<ForgotBank />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
+        <Route path="/reset-bank/:token" element={<ResetBank />} />
+
         <Route path="/user-dashboard" element={<UserDashboard />} />
+
+        <Route path="/product" element={<AuctionCard />} />
+        <Route path="/product/:productId" element={<ProductDetail />} />
+
+        <Route path="/home" element={<Home />} />
         <Route path="/manager-dashboard" element={<ManagerDashboard />} />
         <Route path="/in-auction" element={<InAuction />} />
         <Route path="/manager-notification" element={<ManagerNotification />} />

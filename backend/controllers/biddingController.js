@@ -3,6 +3,7 @@ const Product = require("../models/productModel")
 const BiddingProduct = require("../models/biddingModel")
 const AdminModel = require("../models/admin")
 const ManagerModel = require("../models/Manager")
+const User = require("../models/User")
 const sendEmail = require("../utils/sendEmail")
 
 const getBiddingHistory = asyncHandler(async(req, res) => {
@@ -13,40 +14,46 @@ const getBiddingHistory = asyncHandler(async(req, res) => {
   res.status(200).json(biddingHistory);
 });
 
-const placeBid = asyncHandler(async (req, res) => {
-  const { productId, price } = req.body;
-  const userId = req.user.id;
+const placeBid = async (req, res) => {
+  const { id: productId } = req.params;
+  const { price } = req.body;
+  const userId = req.user._id; // assuming auth middleware adds user
 
-  const product = await Product.findById(productId);
-  if (!product) {
-    res.status(400);
-    throw new Error("Invalid product");
+  try {
+    // Find product
+    const product = await Product.findById(productId);
+    if (!product) return res.status(404).json({ message: "Product not found" });
+
+    // Optional: Prevent bidding if product is sold
+    if (product.isSoldOut) {
+      return res.status(400).json({ message: "This product is sold out." });
+    }
+
+    // Ensure new bid is higher than current bid/price
+    const minBid = product.currentBid ?? product.price;
+    if (price <= minBid) {
+      return res.status(400).json({ message: "Your bid must be higher than the current bid." });
+    }
+
+    // Save new bid
+    const bid = new BiddingProduct({
+      user: userId,
+      product: productId,
+      price,
+    });
+    await bid.save();
+
+    // Update product's currentBid and increment bid count
+    product.currentBid = price;
+    product.bids = product.bids + 1;
+    await product.save();
+
+    res.status(200).json({ message: "Bid placed successfully", bid });
+  } catch (err) {
+    console.error("Bid error:", err);
+    res.status(500).json({ message: "Server error while placing bid" });
   }
-
-  if (!product.isVerify) {
-    res.status(400);
-    throw new Error("Bidding is not verified for these products.");
-  }
-
-  if (product.isSoldOut === true) {
-    res.status(400);
-    throw new Error("Bidding is closed for this product.");
-  }
-
-  const highestBid = await BiddingProduct.findOne({ product: productId }).sort({ price: -1 });
-  if (highestBid && price <= highestBid.price) {
-    res.status(400);
-    throw new Error("Your bid must be higher than the current highest bid");
-  }
-
-  const newBid = await BiddingProduct.create({
-    user: userId,
-    product: productId,
-    price,
-  });
-
-  res.status(201).json(newBid);
-});
+};
 
 const sellProduct = asyncHandler(async(req, res) => {
   const { productId } = req.body;
@@ -118,8 +125,73 @@ const test = asyncHandler(async(req, res) => {
   res.send("test")
 });
 
-module.exports={
+const getUserBiddingHistory = asyncHandler(async (req, res) => {
+  const { email } = req.params;
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  const bids = await BiddingProduct.find({ user: user._id })
+    .populate("product")
+    .sort({ createdAt: -1 });
+
+  res.status(200).json(bids);
+});
+
+const getUserWinningBids = asyncHandler(async (req, res) => {
+  const { email } = req.params;
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  const products = await Product.find({ soldTo: user._id })
+    .populate("soldTo")
+    .sort({ updatedAt: -1 });
+
+  res.status(200).json(products);
+});
+
+const getUserBids = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+
+  const bids = await BiddingProduct.find({ user: userId })
+    .sort("-createdAt")
+    .populate("product");
+
+  const winningBids = await Product.find({ soldTo: userId });
+
+  res.status(200).json({
+    bids,
+    winningBids,
+  });
+});
+
+const getUserBidsByToken = async (req, res) => {
+  try {
+    const userId = req.user._id; // Provided by the `protect` middleware
+    const bids = await BiddingProduct.find({ user: userId }).populate("product");
+res.json(bids);
+
+  } catch (error) {
+    console.error("Error fetching user bids:", error);
+    res.status(500).json({ message: "Failed to fetch user bids" });
+  }
+};
+
+
+
+module.exports = {
   getBiddingHistory,
-  placeBid, 
+  placeBid,
   sellProduct,
+  getUserBiddingHistory,
+  getUserWinningBids,
+  getUserBids,
+  getUserBidsByToken, 
 };

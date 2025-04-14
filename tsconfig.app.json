@@ -15,6 +15,10 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* ✅ Add these: */
+    "allowJs": true,
+    "checkJs": false, // optional: set to true if you want type checking in JS files
+
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
@@ -22,5 +26,14 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src", "backend", "tailwind.config.js"]
+  "include": [
+    "src",
+    "backend",
+    "tailwind.config.js",
+    "../Downloads/Bidding-Website-master/Bidding-Website-master/src/components/hero",
+    
+    /* ✅ Include JS/JSX files */
+    "**/*.js",
+    "**/*.jsx"
+  ]
 }

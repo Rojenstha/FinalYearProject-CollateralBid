@@ -20,6 +20,7 @@ import {
   Check,
 } from "react-bootstrap-icons";
 import axios from "axios";
+import Sidebar from "./AdminNav";
 
 function Managers() {
   const [active, setActive] = useState("Managers");
@@ -49,7 +50,9 @@ function Managers() {
 
   const fetchManagers = async () => {
     try {
-      const response = await axios.get("http://localhost:3001/allmanagers");
+      const response = await axios.get(
+        "http://localhost:5000/api/manager/allmanagers"
+      );
       setManagers(response.data);
     } catch (error) {
       console.error("Error fetching managers:", error);
@@ -58,36 +61,58 @@ function Managers() {
 
   const [editManager, setEditManager] = useState<Manager | null>(null);
   const [showEditPopup, setShowEditPopup] = useState(false);
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [managerToDelete, setManagerToDelete] = useState<Manager | null>(null);
+
+  const [editConfirmPopup, setEditConfirmPopup] = useState(false);
+  const [updateMessage, setUpdateMessage] = useState("");
+  const [deleteMessage, setDeleteMessage] = useState("");
 
   const handleEditClick = (manager: Manager) => {
     setEditManager(manager);
+    setUpdateMessage("");
     setShowEditPopup(true);
   };
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editManager) return;
+    setEditConfirmPopup(true);
+  };
 
+  const confirmUpdate = async () => {
+    if (!editManager) return;
     try {
       await axios.put(
-        `http://localhost:3001/managers/${editManager._id}`,
+        `http://localhost:5000/api/manager/${editManager._id}`,
         editManager
       );
+      setUpdateMessage("Manager updated successfully.");
       setShowEditPopup(false);
-      fetchManagers(); // Refresh the list
+      setEditConfirmPopup(false);
+      fetchManagers(); // Refresh
     } catch (error) {
+      setUpdateMessage("Failed to update manager.");
       console.error("Error updating manager:", error);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this manager?"))
-      return;
+  const handleDelete = (manager: Manager) => {
+    setManagerToDelete(manager);
+    setDeleteMessage("");
+    setShowDeletePopup(true);
+  };
 
+  const confirmDelete = async () => {
+    if (!managerToDelete) return;
     try {
-      await axios.delete(`http://localhost:3001/managers/${id}`);
-      fetchManagers(); // Refresh the list
+      await axios.delete(
+        `http://localhost:5000/api/manager/del/${managerToDelete._id}`
+      );
+      setDeleteMessage("Manager deleted successfully.");
+      setShowDeletePopup(false);
+      fetchManagers();
     } catch (error) {
+      setDeleteMessage("Failed to delete manager.");
       console.error("Error deleting manager:", error);
     }
   };
@@ -100,10 +125,10 @@ function Managers() {
 
   const fetchBanks = async () => {
     try {
-      const response = await axios.get("http://localhost:3001/allbanks");
+      const response = await axios.get("http://localhost:5000/api/bank/bank");
       setBanks(response.data);
     } catch (error) {
-      console.error("Error fetching managers:", error);
+      console.error("Error fetching banks:", error);
     }
   };
 
@@ -111,7 +136,7 @@ function Managers() {
     e.preventDefault();
     try {
       const response = await axios.post(
-        "http://localhost:3001/registermanager",
+        "http://localhost:5000/api/manager/register",
         {
           name,
           phone,
@@ -138,145 +163,11 @@ function Managers() {
     <>
       <div className="d-flex">
         {/* Sidebar */}
-        <div
-          className="d-flex flex-column flex-shrink-0 p-3 bg-dark text-white"
-          style={{ width: "250px", height: "100vh" }}
-        >
-          <Link
-            to=""
-            className="d-flex align-items-center mb-3 text-white text-decoration-none"
-          >
-            <img
-              src="/src/assets/logo2.png"
-              alt="Logo"
-              width="211"
-              height="72"
-            />
-          </Link>
-          <hr />
-          <ul className="nav nav-pills flex-column mb-auto">
-            <li className="nav-item">
-              <Link
-                to="/admin-dashboard"
-                className={`nav-link ${
-                  active === "Home" ? "active" : "text-white"
-                }`}
-                onClick={() => setActive("Home")}
-              >
-                <House className="me-2" /> Home
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/in-auction"
-                className={`nav-link ${
-                  active === "In-Auction" ? "active" : "text-white"
-                }`}
-                onClick={() => setActive("In-Auction")}
-              >
-                <Grid className="me-2" /> In-Auction
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/transaction"
-                className={`nav-link ${
-                  active === "Transactions" ? "active" : "text-white"
-                }`}
-                onClick={() => setActive("Transactions")}
-              >
-                <CreditCard className="me-2" /> Transactions
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/banks"
-                className={`nav-link ${
-                  active === "Banks" ? "active" : "text-white"
-                }`}
-                onClick={() => setActive("Banks")}
-              >
-                <Bank className="me-2" /> Associated Banks
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/managers"
-                className={`nav-link ${
-                  active === "Managers" ? "active" : "text-white"
-                }`}
-                onClick={() => setActive("Managers")}
-              >
-                <People className="me-2" /> Managers
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/users"
-                className={`nav-link ${
-                  active === "Customers" ? "active" : "text-white"
-                }`}
-                onClick={() => setActive("Customers")}
-              >
-                <People className="me-2" /> Customers
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/verifyauctions"
-                className={`nav-link ${
-                  active === "VerifyAuction" ? "active" : "text-white"
-                }`}
-                onClick={() => setActive("VerifyAuction")}
-              >
-                <GraphUp className="me-2" /> Verfiy Auction
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/verifyusers"
-                className={`nav-link ${
-                  active === "VerifyUser" ? "active" : "text-white"
-                }`}
-                onClick={() => setActive("VerifyUser")}
-              >
-                <Check className="me-2" /> Verify Users
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/messages"
-                className={`nav-link ${
-                  active === "Messages" ? "active" : "text-white"
-                }`}
-                onClick={() => setActive("Messages")}
-              >
-                <ChatDots className="me-2" /> Messages
-              </Link>
-            </li>
-          </ul>
-          <hr />
-          <Dropdown>
-            <Dropdown.Toggle
-              variant="dark"
-              className="d-flex align-items-center text-white border-0"
-            >
-              <strong>Admin</strong>
-            </Dropdown.Toggle>
-            <Dropdown.Menu className="bg-dark text-white">
-              <Dropdown.Item as={Link} to="/" className="text-secondary">
-                Change Username
-              </Dropdown.Item>
-              <Dropdown.Item as={Link} to="/" className="text-secondary">
-                Change Password
-              </Dropdown.Item>
-              <Dropdown.Divider />
-              <Dropdown.Item onClick={handleLogout} className="text-danger">
-                Sign out
-              </Dropdown.Item>
-            </Dropdown.Menu>
-          </Dropdown>
-        </div>
+        <Sidebar
+          active={active}
+          setActive={setActive}
+          onLogout={handleLogout}
+        />
 
         {/* Main Content */}
         <div className="p-4 w-100">
@@ -289,11 +180,17 @@ function Managers() {
             <GraphUp className="me-4" />
             Insight Statistics <hr />
           </h2>
+          {updateMessage && (
+            <p className="alert alert-success">{updateMessage}</p>
+          )}
+          {deleteMessage && (
+            <p className="alert alert-danger">{deleteMessage}</p>
+          )}
 
           {/* Statistics */}
           <div className="row g-4">
             <div className="col-12 col-md-6">
-              <Link to="/managers">
+              <Link to="/cb-ad/managers">
                 <div className="bg-secondary text-white p-3 rounded shadow-sm text-center">
                   <h4>
                     <People className="me-2" />
@@ -305,7 +202,7 @@ function Managers() {
             </div>
 
             <div className="col-12 col-md-6">
-              <Link to="/banks">
+              <Link to="/cb-ad/banks">
                 <div className="bg-secondary text-white p-3 rounded shadow-sm text-center">
                   <h4>
                     <Bank className="me-2" />
@@ -344,20 +241,22 @@ function Managers() {
                   <td>{manager.bank}</td>
                   <td>{manager.email}</td>
                   <td>
-                    <Button
-                      variant="warning"
-                      size="sm"
-                      onClick={() => handleEditClick(manager)}
-                    >
-                      Edit
-                    </Button>{" "}
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => handleDelete(manager._id)}
-                    >
-                      Delete
-                    </Button>
+                    <div className="d-flex gap-2">
+                      <Button
+                        variant="outline-warning"
+                        size="sm"
+                        onClick={() => handleEditClick(manager)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        onClick={() => handleDelete(manager)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -456,6 +355,117 @@ function Managers() {
             </Button>
           </Form>
         </Modal.Body>
+      </Modal>
+
+      {/* Edit Manager */}
+      <Modal show={showEditPopup} onHide={() => setShowEditPopup(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Edit Manager</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {editManager && (
+            <Form onSubmit={handleUpdate}>
+              <Form.Group className="mb-3">
+                <Form.Label>Username</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={editManager.name}
+                  onChange={(e) =>
+                    setEditManager({ ...editManager, name: e.target.value })
+                  }
+                  required
+                />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Phone Number</Form.Label>
+                <InputGroup>
+                  <InputGroup.Text>+977</InputGroup.Text>
+                  <Form.Control
+                    type="text"
+                    value={editManager.phone}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, "");
+                      if (value.length <= 10) {
+                        setEditManager({ ...editManager, phone: value });
+                      }
+                    }}
+                    required
+                    placeholder="Enter 10-digit number"
+                  />
+                </InputGroup>
+                {editManager.phone.length !== 10 &&
+                  editManager.phone.length > 0 && (
+                    <p className="text-danger mt-1">
+                      Phone number must be 10 digits
+                    </p>
+                  )}
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Bank Code</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={editManager.bank}
+                  onChange={(e) =>
+                    setEditManager({ ...editManager, bank: e.target.value })
+                  }
+                  required
+                />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Email</Form.Label>
+                <Form.Control
+                  type="text"
+                  value={editManager.email}
+                  onChange={(e) =>
+                    setEditManager({ ...editManager, email: e.target.value })
+                  }
+                  required
+                />
+              </Form.Group>
+              <Button variant="success" type="submit">
+                Save Changes
+              </Button>
+            </Form>
+          )}
+        </Modal.Body>
+      </Modal>
+
+      <Modal show={showDeletePopup} onHide={() => setShowDeletePopup(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Delete</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Are you sure you want to delete{" "}
+          <strong>{managerToDelete?.name}</strong>?
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowDeletePopup(false)}>
+            Cancel
+          </Button>
+          <Button variant="danger" onClick={confirmDelete}>
+            Delete
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <Modal show={editConfirmPopup} onHide={() => setEditConfirmPopup(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Edit</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Are you sure you want to update this manager’s information?
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => setEditConfirmPopup(false)}
+          >
+            Cancel
+          </Button>
+          <Button variant="success" onClick={confirmUpdate}>
+            Confirm
+          </Button>
+        </Modal.Footer>
       </Modal>
     </>
   );

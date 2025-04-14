@@ -4,6 +4,6 @@ const { adminLogin, adminRegister } = require("../controllers/adminController");
 const { protect, isAdmin } = require("../middleWare/authMiddleWare")
 
 router.post("/cb-login", adminLogin);
-router.post("/cb-register", protect, isAdmin, adminRegister);
+router.post("/cb-register", adminRegister);
 
 module.exports = router;

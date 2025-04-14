@@ -16,6 +16,7 @@ const bankRoute = require("./routes/bankRoute");
 const messageRoute = require("./routes/messageRoute");
 const productRoute = require("./routes/productRoute")
 const biddingRoute = require("./routes/biddingRoute")
+const categoryRoute = require("./routes/categoryRoute")
 
 dotenv.config();
 const app = express();
@@ -27,7 +28,12 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true, 
+  })
+);
 app.use(express.json());
 app.use(cookieParser());
 
@@ -42,7 +48,7 @@ app.use("/api/message", messageRoute);
 
 app.use("/api/product", productRoute);
 app.use("/api/bidding", biddingRoute);
-// app.use("/api/category", categoryRoute);
+app.use("/api/category", categoryRoute);
 
 app.use("/upload", express.static(path.join(__dirname, "uploads")));
 

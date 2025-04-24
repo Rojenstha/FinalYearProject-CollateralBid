@@ -33,7 +33,7 @@ const ResetPassword = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:5000/api/manager/reset-bank/${token}`,
+        `http://localhost:5000/api/user/reset-password/${token}`,
         {
           method: "POST",
           headers: {

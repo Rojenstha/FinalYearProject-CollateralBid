@@ -107,9 +107,7 @@ const allUsers = async(req, res)=>{
 
   const forgotPassword = async (req, res) => {
     const { email } = req.body;
-    console.log("Now:", new Date(Date.now()));
   
-    // Check for User and Manager models
     let user = await UserModel.findOne({ email });
     let manager = await ManagerModel.findOne({ email });
   
@@ -118,17 +116,13 @@ const allUsers = async(req, res)=>{
     }
   
     const resetToken = crypto.randomBytes(32).toString("hex");
-    console.log("Generated Reset Token:", resetToken);
   
-    // Set the reset token and expiration for user or manager
     if (user) {
       user.resetPasswordToken = resetToken;
-      user.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
       await user.save();
     }
     if (manager) {
       manager.resetPasswordToken = resetToken;
-      manager.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
       await manager.save();
     }
   
@@ -138,11 +132,9 @@ const allUsers = async(req, res)=>{
       <h1>Password Reset</h1>
       <p>You requested a password reset. Click the link below to reset it:</p>
       <a href="${resetURL}">Reset Password</a>
-      <p>This link will expire in 15 minutes.</p>
     `;
   
     try {
-      // Send reset email to the appropriate user or manager
       if (user) {
         await sendEmail({
           email: user.email,
@@ -162,12 +154,10 @@ const allUsers = async(req, res)=>{
     } catch (err) {
       if (user) {
         user.resetPasswordToken = undefined;
-        user.resetPasswordExpire = undefined;
         await user.save();
       }
       if (manager) {
         manager.resetPasswordToken = undefined;
-        manager.resetPasswordExpire = undefined;
         await manager.save();
       }
   
@@ -176,22 +166,16 @@ const allUsers = async(req, res)=>{
   };
   
   
+  
   const resetPassword = async (req, res) => {
     const { token } = req.params;
     const { password } = req.body;
   
-    // Find user or manager with valid token and expiration
-    let user = await UserModel.findOne({
-      resetPasswordToken: token,
-      resetPasswordExpire: { $gt: Date.now() },
-    });
-    let manager = await ManagerModel.findOne({
-      resetPasswordToken: token,
-      resetPasswordExpire: { $gt: Date.now() },
-    });
+    let user = await UserModel.findOne({ resetPasswordToken: token });
+    let manager = await ManagerModel.findOne({ resetPasswordToken: token });
   
     if (!user && !manager) {
-      return res.status(400).json({ message: "Token is invalid or expired" });
+      return res.status(400).json({ message: "Token is invalid" });
     }
   
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -199,18 +183,17 @@ const allUsers = async(req, res)=>{
     if (user) {
       user.password = hashedPassword;
       user.resetPasswordToken = undefined;
-      user.resetPasswordExpire = undefined;
       await user.save();
     }
     if (manager) {
       manager.password = hashedPassword;
       manager.resetPasswordToken = undefined;
-      manager.resetPasswordExpire = undefined;
       await manager.save();
     }
   
     res.status(200).json({ message: "Password reset successful" });
   };
+  
   
   const deleteUser = async (req, res) => {
     try {

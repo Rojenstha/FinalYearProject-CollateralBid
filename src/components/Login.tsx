@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import Cookies from "js-cookie"; // ⬅️ new
+import Cookies from "js-cookie";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -9,10 +9,8 @@ const Login = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    bank: "",
   });
 
-  const [showBankField, setShowBankField] = useState(false);
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
@@ -20,21 +18,13 @@ const Login = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setShowBankField(e.target.checked);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
-      const loginData = showBankField
-        ? formData
-        : { email: formData.email, password: formData.password };
-
       const response = await axios.post(
         "http://localhost:5000/api/user/login",
-        loginData,
+        formData,
         { withCredentials: true }
       );
 
@@ -95,35 +85,6 @@ const Login = () => {
                   required
                 />
               </div>
-
-              <div className="form-check mb-3">
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  id="toggleBankField"
-                  onChange={handleCheckboxChange}
-                />
-                <label className="form-check-label" htmlFor="toggleBankField">
-                  Manager (**Check only for officials**)
-                </label>
-              </div>
-
-              {showBankField && (
-                <div className="mb-3">
-                  <label className="form-label">Bank Code</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    name="bank"
-                    value={formData.bank}
-                    onChange={handleChange}
-                    required
-                  />
-                  <p className="text-center mt-3">
-                    <Link to="/forgotbankcode">Forgot Bank Code?</Link>
-                  </p>
-                </div>
-              )}
 
               <button type="submit" className="btn btn-primary w-100">
                 Login

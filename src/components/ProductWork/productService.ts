@@ -35,10 +35,10 @@ export const placeBid = async (productId: string, price: number, userId: string)
 
 // Get bidding history
 export const getBiddingHistory = async (productId: string) => {
-  const res = await fetch(`/api/bidding/${productId}`);
-  const data = await res.json();
-  return data; // or data.bids depending on backend shape
+  const res = await axios.get(`/api/bidding/${productId}`); 
+  return res.data;
 };
+
 
 
 export { getAllProducts, getProductById };

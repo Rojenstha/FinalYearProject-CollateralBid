@@ -17,25 +17,53 @@ const getBiddingHistory = asyncHandler(async(req, res) => {
 const placeBid = async (req, res) => {
   const { id: productId } = req.params;
   const { price } = req.body;
-  const userId = req.user._id; // assuming auth middleware adds user
+  const userId = req.user._id;
 
   try {
-    // Find product
     const product = await Product.findById(productId);
-    if (!product) return res.status(404).json({ message: "Product not found" });
-
-    // Optional: Prevent bidding if product is sold
-    if (product.isSoldOut) {
-      return res.status(400).json({ message: "This product is sold out." });
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
     }
 
-    // Ensure new bid is higher than current bid/price
-    const minBid = product.currentBid ?? product.price;
-    if (price <= minBid) {
-      return res.status(400).json({ message: "Your bid must be higher than the current bid." });
+    // Check if sold
+    if (product.isSoldOut || product.auctionStatus === "sold") {
+      return res.status(400).json({ message: "This product is already sold." });
     }
 
-    // Save new bid
+    const now = new Date();
+    if (now < product.startTime) {
+      return res.status(400).json({ message: "Auction has not started yet." });
+    }
+    if (now > product.endTime) {
+      return res.status(400).json({ message: "Auction has already ended." });
+    }
+
+    const currentBid = product.currentBid || product.price;
+    const minimumIncrement = product.minimumIncrement || 1000;
+    const maximumIncrement = product.maximumIncrement ?? Infinity;
+
+    if (price < currentBid + minimumIncrement) {
+      return res.status(400).json({
+        message: `Bid must be at least NPR ${minimumIncrement} higher than the current bid (NPR ${currentBid}).`,
+      });
+    }
+
+    if (price - currentBid > maximumIncrement) {
+      return res.status(400).json({
+        message: `Bid increment can't exceed NPR ${maximumIncrement}.`,
+      });
+    }
+
+    // Optional: prevent duplicate bid at same price by same user
+    const recentSameBid = await BiddingProduct.findOne({
+      user: userId,
+      product: productId,
+      price: price,
+    });
+    if (recentSameBid) {
+      return res.status(400).json({ message: "You already placed this bid amount." });
+    }
+
     const bid = new BiddingProduct({
       user: userId,
       product: productId,
@@ -43,9 +71,14 @@ const placeBid = async (req, res) => {
     });
     await bid.save();
 
-    // Update product's currentBid and increment bid count
+    // Update product
     product.currentBid = price;
-    product.bids = product.bids + 1;
+    product.bids += 1;
+
+    if (product.auctionStatus === "notStarted") {
+      product.auctionStatus = "ongoing";
+    }
+
     await product.save();
 
     res.status(200).json({ message: "Bid placed successfully", bid });
@@ -54,6 +87,7 @@ const placeBid = async (req, res) => {
     res.status(500).json({ message: "Server error while placing bid" });
   }
 };
+
 
 const sellProduct = asyncHandler(async(req, res) => {
   const { productId } = req.body;
@@ -90,7 +124,8 @@ const sellProduct = asyncHandler(async(req, res) => {
 
   // Update product details
   product.isSoldOut = true;
-  product.soldTo = highestBid.user_id;
+  product.soldTo = highestBid.user._id;
+
   product.soldPrice = finalPrice;
 
   // Update admin's commission balance

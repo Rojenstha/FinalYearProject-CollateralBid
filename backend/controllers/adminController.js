@@ -17,10 +17,11 @@ const adminLogin = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user._id, userType: "admin" },
+      { id: user._id, role: "admin" }, // match 'role' key
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
+    
 
     res.cookie("token", token, {
       httpOnly: true,
@@ -70,5 +71,7 @@ const adminRegister = async (req, res) => {
     res.status(500).json({ error: "Error registering admin. Please try again later." });
   }
 };
+
+
 
 module.exports = { adminLogin, adminRegister };

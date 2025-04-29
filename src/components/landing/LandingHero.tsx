@@ -25,7 +25,7 @@ const LandingHero = () => {
           Welcome to CollateralBid!
         </h1>
         <p className="fs-3">
-          Join Us Now to view all the assets auctioned by our trusted Banks
+          Join Us Now to view all the assets auctioned by Our Associated Banks
           through proper processes.
         </p>
         <button
@@ -75,7 +75,7 @@ const LandingHero = () => {
               </button>
               <button
                 className="btn btn-primary"
-                onClick={() => navigate("/register")}
+                onClick={() => navigate("/signup")}
               >
                 Join Us Now
               </button>

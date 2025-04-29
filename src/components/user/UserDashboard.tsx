@@ -40,33 +40,35 @@ const UserDashboard: React.FC = () => {
     : [];
 
   useEffect(() => {
-    const fetchUserInfo = async () => {
+    const storedUserInfo = localStorage.getItem("userInfo");
+    if (storedUserInfo) {
+      try {
+        const parsedUser = JSON.parse(storedUserInfo);
+        setUserInfo(parsedUser);
+      } catch (error) {
+        console.error("Error parsing userInfo from localStorage:", error);
+        navigate("/login");
+      }
+    } else {
+      console.warn("No userInfo found in localStorage.");
+      navigate("/login");
+    }
+
+    const fetchUserBids = async () => {
       try {
         const token = Cookies.get("token");
-        console.log("Token from cookies:", token);
-
-        const userRes = await axios.get("/api/users/user", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        console.log("User data fetched:", userRes.data);
-
-        setUserInfo(userRes.data);
-
         const bidsRes = await axios.get("/api/bidding/user", {
           headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
         });
-
-        console.log("Raw bids response:", bidsRes.data);
 
         setBids(Array.isArray(bidsRes.data?.bids) ? bidsRes.data.bids : []);
       } catch (err) {
-        console.error("Fetch error:", err);
-        navigate("/login");
+        console.error("Fetch error (bids):", err);
       }
     };
 
-    fetchUserInfo();
+    fetchUserBids();
   }, [navigate]);
 
   return (

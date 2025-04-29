@@ -18,6 +18,18 @@ const Login = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const extractErrorMessage = (error: any): string => {
+    if (error.response) {
+      const { data } = error.response;
+      if (typeof data === "string") return data;
+      if (data.error) return data.error;
+      if (data.message) return data.message;
+      if (Array.isArray(data.errors))
+        return data.errors[0]?.msg || "An error occurred.";
+    }
+    return "Login failed. Please try again.";
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -28,9 +40,10 @@ const Login = () => {
         { withCredentials: true }
       );
 
-      const { token, userInfo, message, userType } = response.data;
+      const { token, role, ...userInfo } = response.data;
 
-      setMessage(message);
+      setMessage("Login successful");
+
       localStorage.setItem("token", token);
       localStorage.setItem("userInfo", JSON.stringify(userInfo));
 
@@ -39,64 +52,95 @@ const Login = () => {
         expires: 1,
       });
 
-      navigate(userType === "manager" ? "/manager-dashboard" : "/home");
+      navigate(role === "seller" ? "/manager-dashboard" : "/home");
     } catch (error: any) {
-      setMessage(error.response?.data?.error || "Login failed");
+      const errorMessage = extractErrorMessage(error);
+      setMessage(errorMessage);
     }
   };
 
   return (
-    <div className="container mt-5">
-      <div className="row justify-content-center">
-        <div className="col-md-5">
-          <div className="card shadow-lg p-4">
-            <a className="text-center mb-4" href="#">
-              <img
-                src="/src/assets/logo.png"
-                alt="Bootstrap"
-                width="100"
-                height="45"
+    <div className="container-fluid min-vh-100 d-flex p-0">
+      <div
+        className="col-md-6 d-flex flex-column justify-content-center align-items-center text-white p-5 text-center"
+        style={{
+          backgroundImage: "url('/src/assets/bg.jpg')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          className="position-absolute top-0 start-0 w-100 h-100"
+          style={{
+            backdropFilter: "blur(8px)",
+            backgroundColor: "rgba(0,0,0,0.4)",
+            zIndex: 1,
+          }}
+        ></div>
+
+        <div style={{ zIndex: 2 }}>
+          <h1 className="pb-5" style={{ fontSize: "5rem", fontWeight: "bold" }}>
+            Welcome to CollateralBid!
+          </h1>
+          <p className="fs-3">
+            Discover amazing auctions, bid on your favorite items, and enjoy the
+            thrill of winning!
+          </p>
+        </div>
+      </div>
+
+      {/* Right Panel */}
+      <div className="col-md-6 d-flex justify-content-center align-items-center bg-white text-dark">
+        <div className="w-75">
+          <h3 className="text-center mb-4 fw-bold">Login to Collateral Bid</h3>
+
+          {message && <div className="alert alert-info">{message}</div>}
+
+          <form onSubmit={handleSubmit}>
+            <div className="mb-3">
+              <input
+                type="email"
+                className="form-control bg-light border-0"
+                placeholder="Email address"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
               />
-            </a>
-            <h2 className="text-center mb-4">Login to Collateral-Bid</h2>
+            </div>
+            <div className="mb-3">
+              <input
+                type="password"
+                className="form-control bg-light border-0"
+                placeholder="Password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+              />
+            </div>
 
-            {message && <p className="alert alert-info">{message}</p>}
+            <button
+              type="submit"
+              className="btn btn-outline-primary w-100 fw-bold"
+            >
+              Login
+            </button>
+          </form>
 
-            <form onSubmit={handleSubmit}>
-              <div className="mb-3">
-                <label className="form-label">Email</label>
-                <input
-                  type="email"
-                  className="form-control"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="mb-3">
-                <label className="form-label">Password</label>
-                <input
-                  type="password"
-                  className="form-control"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
+          <div className="text-center mt-3">
+            <Link to="/forgotpassword" className="text-muted">
+              Forgot Password?
+            </Link>
+          </div>
 
-              <button type="submit" className="btn btn-primary w-100">
-                Login
-              </button>
-            </form>
-
-            <p className="text-center mt-3">
-              <Link to="/forgotpassword">Forgot Password?</Link>
-            </p>
-            <p className="text-center mt-3">
-              Don't have an account? <Link to="/signup">Sign Up</Link>
-            </p>
+          <div className="text-center mt-2">
+            Don't have an account?{" "}
+            <Link to="/signup" className="text-success fw-semibold">
+              Sign up
+            </Link>
           </div>
         </div>
       </div>

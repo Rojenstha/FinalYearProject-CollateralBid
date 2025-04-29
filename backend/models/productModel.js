@@ -31,12 +31,42 @@ const productSchema = mongoose.Schema({
     },
     price:{
         type: Number,
-        require: [true, "Please add a price"],
+        required: [true, "Please add a price"],
     },
-    height: { type: Number},
-    lengthPic: { type: Number},
-    Width: { type: Number},
-    mediumused: { type: String},
+    city: { type: String, required: [true, "Please enter the city"]},
+    startTime: {
+        type: Date,
+        required: true,
+      },
+      endTime: {
+        type: Date,
+        required: true,
+      },
+      minimumIncrement: {
+        type: Number,
+        default: 1000, 
+      },
+      maximumIncrement: {
+        type: Number,
+        default: 10000, 
+      },
+      
+      reservePrice: {
+        type: Number,
+      },
+      currentBid: {
+        type: Number,
+        default: 0,
+      },
+      auctionStatus: {
+        type: String,
+        enum: ["notStarted", "ongoing", "ended", "sold"],
+        default: "notStarted",
+      },      
+      bids: {
+        type: Number,
+        default: 0,
+      },      
     isVerify: { type: Boolean, default: false},
     isSoldOut: { type: Boolean, default: false},
     soldTo:{

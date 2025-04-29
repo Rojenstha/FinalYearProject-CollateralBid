@@ -16,6 +16,14 @@ const BiddingProductSchema = mongoose.Schema(
       type: Number,
       require: [true, "Please add a Price"],
     },
+    bidTime: {
+      type: Date,
+      default: Date.now,
+    },
+    isWinningBid: {
+      type: Boolean,
+      default: false,
+    },    
   },
   { timestamps: true }
 );

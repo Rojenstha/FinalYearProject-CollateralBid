@@ -9,12 +9,17 @@ const BiddingProduct = require("../models/biddingModel");
 
 const createProduct = asyncHandler(async(req, res) => {
   console.log("File received:", req.file);
-  const { title, description, price, category, height, lengthpic, width, mediumused, weigth } = req.body;
+  const { title, description, price, category, city,
+    minimumIncrement,
+    maximumIncrement,
+    startTime,
+    endTime,
+     } = req.body;
   const userId = req.user.id;
 
   console.log("CREATE PRODUCT BODY:", req.body);
 
-  if (!title || !description || !price|| !category) {
+  if (!title || !description || !price|| !category|| !city || !startTime || !endTime) {
     res.status(400);
     throw new Error("Please fill in all fields");
   }
@@ -63,11 +68,12 @@ const createProduct = asyncHandler(async(req, res) => {
     description,
     price,
     category,
-    height,
-    lengthpic,
-    width,
-    mediumused,
-    weigth,
+    city,
+    minimumIncrement,
+    maximumIncrement,
+    startTime,
+    endTime,
+    
     image: fileData,
   });
   res.status(201).json({
@@ -193,11 +199,12 @@ const updateProduct = asyncHandler(async (req, res) => {
       description,
       price,
       category,
-      height,
-      lengthpic,
-      width,
-      mediumused,
-      weigth,
+      city,
+      minimumIncrement,
+      maximumIncrement,
+      startTime,
+      endTime,
+      
       image: Object.keys(fileData).length === 0 ? Product?.image : fileData,
     },
     {
@@ -209,6 +216,7 @@ const updateProduct = asyncHandler(async (req, res) => {
 });
 
 const getAllProductsofUser = asyncHandler(async (req, res) => {
+  const products = await Product.find({ user: req.user.id });
 
   const productsWithPrices = await Promise.all(
     products.map(async (product) => {
@@ -216,14 +224,14 @@ const getAllProductsofUser = asyncHandler(async (req, res) => {
       const biddingPrice = latestBid ? latestBid.price : product.price;
       return {
         ...product._doc,
-        biddingPrice, // Adding the price field
+        biddingPrice,
       };
     })
   );
 
   res.status(200).json(productsWithPrices);
-
 });
+
 
 const verifyAndAddCommissionProductByAdmin = asyncHandler(async(req, res) => {
 
@@ -263,44 +271,54 @@ const getAllProductsByAdmin = asyncHandler(async(req, res) => {
 });
 
 const deleteProductsByAdmin = asyncHandler(async (req, res) => {
-  const { productIds } = req.body;
-  const product = await Product.findById(id);
+  const { productIds } = req.body; // Expecting an array of product IDs
 
-  if (!product) {
-    res.status(404);
-    throw new Error("Product not found");
+  if (!Array.isArray(productIds)) {
+    return res.status(400).json({ message: "productIds should be an array." });
   }
 
-  if (product.image && product.image.public_id) {
-    try {
-      await cloudinary.uploader.destroy(product.image.public_id);
-      console.log("Image deleted from Cloudinary");
-    } catch (error) {
-      console.error("Error deleting image from Cloudinary:", error);
-    }
+  const products = await Product.find({ '_id': { $in: productIds } });
+
+  if (products.length === 0) {
+    return res.status(404).json({ message: "No products found to delete" });
   }
 
-  if (product.image && product.image.filePath && !product.image.filePath.startsWith("http")) {
-    const localFilePath = path.join(__dirname, "..", product.image.filePath); // Fix path resolution
-
-    fs.access(localFilePath, fs.constants.F_OK, (err) => {
-      if (err) {
-        console.error("File does not exist:", localFilePath);
-      } else {
-        fs.unlink(localFilePath, (unlinkErr) => {
-          if (unlinkErr) {
-            console.error("Failed to delete local file:", unlinkErr);
-          } else {
-            console.log("Local file deleted successfully:", localFilePath);
-          }
-        });
+  // Loop through each product to delete associated images and product
+  for (let product of products) {
+    if (product.image && product.image.public_id) {
+      try {
+        await cloudinary.uploader.destroy(product.image.public_id);
+        console.log("Image deleted from Cloudinary");
+      } catch (error) {
+        console.error("Error deleting image from Cloudinary:", error);
       }
-    });
+    }
+
+    // Delete local file if exists
+    if (product.image && product.image.filePath && !product.image.filePath.startsWith("http")) {
+      const localFilePath = path.join(__dirname, "..", product.image.filePath);
+
+      fs.access(localFilePath, fs.constants.F_OK, (err) => {
+        if (err) {
+          console.error("File does not exist:", localFilePath);
+        } else {
+          fs.unlink(localFilePath, (unlinkErr) => {
+            if (unlinkErr) {
+              console.error("Failed to delete local file:", unlinkErr);
+            } else {
+              console.log("Local file deleted successfully:", localFilePath);
+            }
+          });
+        }
+      });
+    }
+
+    await Product.findByIdAndDelete(product._id);
   }
 
-  await Product.findByIdAndDelete(productIds);
-  res.status(200).json({ message: "Product deleted." });
+  res.status(200).json({ message: `${products.length} products deleted successfully.` });
 });
+
 
 const getProduct = asyncHandler(async(req, res) => {
   const { id } = req.params;

@@ -18,7 +18,7 @@ const AssociatedBank = () => {
   return (
     <div className="bg-light py-5">
       <div className="container text-center text-dark">
-        <h2 className="mb-4 fw-bold">Our Trusted Banks</h2>
+        <h2 className="mb-4 fw-bold">Our Associated Banks</h2>
         <div className="row justify-content-center align-items-center g-4">
           {banks.map((bank, index) => (
             <div className="col-6 col-md-3 col-lg-2" key={index}>

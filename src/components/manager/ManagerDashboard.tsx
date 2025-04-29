@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { GraphUp } from "react-bootstrap-icons";
 import { useNavigate } from "react-router-dom";
-import Sidebar from "./MSideBar";
+import Sidebar from "./MSidebar";
 import DashboardStats from "./MDashboardStats";
-import AddProductModal from "./MAddProductModal";
 import LogoutModal from "./MLogoutModal";
 
 const ManagerDashboard = () => {
@@ -11,22 +10,6 @@ const ManagerDashboard = () => {
   const [showLogoutPopup, setShowLogoutPopup] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
-  const [productData, setProductData] = useState({
-    name: "",
-    location: "",
-    image: "",
-    description: "",
-  });
-
-  const handleChange = (e: any) => {
-    setProductData({ ...productData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = (e: any) => {
-    e.preventDefault();
-    console.log(productData); // Replace with API call
-    setShowModal(false);
-  };
 
   const confirmLogout = () => {
     localStorage.removeItem("token");
@@ -39,7 +22,6 @@ const ManagerDashboard = () => {
       <Sidebar
         active={active}
         setActive={setActive}
-        onAddProduct={() => setShowModal(true)}
         onLogout={() => setShowLogoutPopup(true)}
       />
 
@@ -52,13 +34,6 @@ const ManagerDashboard = () => {
         </h2>
         <DashboardStats />
       </div>
-
-      <AddProductModal
-        show={showModal}
-        onHide={() => setShowModal(false)}
-        onChange={handleChange}
-        onSubmit={handleSubmit}
-      />
 
       <LogoutModal
         show={showLogoutPopup}

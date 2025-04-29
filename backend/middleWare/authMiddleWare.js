@@ -13,12 +13,12 @@ const protect = expressAsyncHandler(async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const { id, userType } = decoded;
+    const { id, role } = decoded; 
 
     let user;
-    if (userType === "manager") {
+    if (role === "seller") {
       user = await ManagerModel.findById(id).select("-password");
-    } else if (userType === "admin") {
+    } else if (role === "admin") {
       user = await AdminModel.findById(id).select("-password");
     } else {
       user = await User.findById(id).select("-password");
@@ -30,9 +30,10 @@ const protect = expressAsyncHandler(async (req, res, next) => {
     }
 
     req.user = user;
-    req.userType = userType;
+    req.userType = role;
     next();
   } catch (error) {
+    console.error("Auth error:", error.message);
     res.status(401);
     throw new Error("Not authorized, please login");
   }
@@ -56,7 +57,7 @@ const isAdmin = expressAsyncHandler(async (req, res, next) => {
 });
 
 const isManager = (req, res, next) => {
-  if (req.userType === "manager") {
+  if (req.userType === "seller") {
     return next();
   }
   res.status(403);

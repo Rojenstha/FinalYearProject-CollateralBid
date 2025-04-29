@@ -8,7 +8,7 @@ const ManagerModel = require("../models/Manager");
 
 const userRegister = async (req, res) => {
   console.log("Request Body:", req.body);
-  const { name, email, password } = req.body;
+  const { name, email, password, phone } = req.body;
   const hashedPassword = await bcrypt.hash(password, 10);
 
   try {
@@ -17,7 +17,7 @@ const userRegister = async (req, res) => {
       return res.status(400).json({ error: "Email already registered" });
     }
 
-    const user = new UserModel({ name, email, password: hashedPassword });
+    const user = new UserModel({ name, email, phone, password: hashedPassword });
     await user.save();
     res.json({ message: "User registered successfully!" });
   } catch (error) {
@@ -25,54 +25,59 @@ const userRegister = async (req, res) => {
   }
 };
 
-const userLogin = async (req, res) => {
-  const { email, password, bank } = req.body;
-
-  try {
-    let user;
-    let userType = "user";
-
-    if (bank) {
-      user = await ManagerModel.findOne({ email, bank });
-      if (!user) {
-        return res.status(403).json({ error: "Invalid Bank Code or Manager not found!" });
-      }
-      userType = "manager";
-    } else {
-      user = await UserModel.findOne({ email });
-      if (!user) {
-        return res.status(400).json({ error: "User not found" });
-      }
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ error: "Invalid credentials" });
-    }
-
-    const token = jwt.sign(
-      { id: user._id, userType },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    );
-
-    res.cookie("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "Strict",
-      maxAge: 60 * 60 * 1000,
-    });
-
-    res.json({
-      message: "Login successful",
-      userType
-    });
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Server error during login" });
-  }
+const generateToken = (id, role) => {
+  return jwt.sign({ id, role }, process.env.JWT_SECRET, {
+    expiresIn: "1d",
+  });
 };
+
+const userLogin = async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: "Please provide email and password." });
+  }
+
+  let user = await UserModel.findOne({ email });
+  let role = "buyer";
+
+  if (!user) {
+    user = await ManagerModel.findOne({ email });
+    role = "seller";
+  }
+
+  if (!user) {
+    return res.status(404).json({ error: "User not found. Please sign up." });
+  }
+
+  const isPasswordCorrect = await bcrypt.compare(password, user.password);
+
+  if (!isPasswordCorrect) {
+    return res.status(400).json({ error: "Invalid email or password." });
+  }
+
+  const token = generateToken(user._id, user.role || role);
+
+  res.cookie("token", token, {
+    path: "/",
+    httpOnly: true,
+    expires: new Date(Date.now() + 1000 * 86400),
+    sameSite: "none",
+    secure: true,
+  });
+
+  const { _id, name, email: userEmail, phone } = user;
+
+  res.status(200).json({
+    _id,
+    name,
+    email: userEmail,
+    phone,
+    role: user.role || role,
+    token,
+  });
+};
+
 
 const allUsers = async(req, res)=>{
     try{
@@ -265,18 +270,7 @@ const allUsers = async(req, res)=>{
   };
   const getCurrentUser = async (req, res) => {
     try {
-      const { id } = req.user;
-      const { userType } = req;
-  
-      let user;
-      if (userType === "manager") {
-        user = await ManagerModel.findById(id).select("-password");
-      } else if (userType === "admin") {
-        user = await AdminModel.findById(id).select("-password");
-      } else {
-        user = await UserModel.findById(id).select("-password");
-      }
-  
+      const user = req.user;
       if (!user) return res.status(404).json({ message: "User not found" });
   
       res.json(user);
@@ -285,7 +279,7 @@ const allUsers = async(req, res)=>{
       res.status(500).json({ error: "Failed to fetch user" });
     }
   };
-
+  
   
 module.exports={
     userRegister,

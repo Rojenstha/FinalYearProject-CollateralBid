@@ -24,6 +24,7 @@ import ManagerNotification from "./components/manager/Notifications";
 import SuccessAuction from "./components/manager/SuccessAuction";
 import SendMessage from "./components/manager/SendMessage";
 import Transaction from "./components/manager/Transaction";
+import AddProduct from "./components/manager/ManagerAddProduct";
 
 import AdminDashboard from "./components/admin/AdminDashboard";
 import AdminLogin from "./components/admin/Login";
@@ -37,7 +38,6 @@ import AdminUsers from "./components/admin/Users";
 import AdminVerifyAuction from "./components/admin/VerifyAuction";
 import AdminVerifyUser from "./components/admin/VerifyUser";
 import axios from "axios";
-import { AuthProvider } from "./components/AuthContext";
 
 function App() {
   return (
@@ -63,6 +63,7 @@ function App() {
         <Route path="/send-message" element={<SendMessage />} />
         <Route path="/success-auction" element={<SuccessAuction />} />
         <Route path="/transaction" element={<Transaction />} />
+        <Route path="/add-product" element={<AddProduct />} />
 
         <Route path="/cb-ad" element={<AdminLogin />} />
         <Route path="/cb-ad/register" element={<AdminRegister />} />

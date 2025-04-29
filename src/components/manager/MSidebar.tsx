@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { Dropdown, Button } from "react-bootstrap";
+import { Dropdown } from "react-bootstrap";
+import { DropdownHeader } from "react-bootstrap";
 import {
   House,
   Grid,
@@ -7,11 +8,11 @@ import {
   Check,
   CreditCard,
   Bell,
-  Plus,
   Messenger,
+  Plus,
 } from "react-bootstrap-icons";
 
-const MSidebar = ({ active, setActive, onAddProduct, onLogout }: any) => (
+const MSidebar = ({ active, setActive, onLogout }: any) => (
   <div
     className="d-flex flex-column flex-shrink-0 p-3 bg-dark text-white"
     style={{ width: "250px", height: "100vh" }}
@@ -43,7 +44,7 @@ const MSidebar = ({ active, setActive, onAddProduct, onLogout }: any) => (
         {
           to: "/transaction",
           icon: <CreditCard className="me-2" />,
-          label: "Transactions",
+          label: "Transaction",
         },
         {
           to: "/send-message",
@@ -54,6 +55,11 @@ const MSidebar = ({ active, setActive, onAddProduct, onLogout }: any) => (
           to: "/manager-notification",
           icon: <Bell className="me-2" />,
           label: "Notifications",
+        },
+        {
+          to: "/add-product",
+          icon: <Plus className="me-2" />,
+          label: "Add Product",
         },
       ].map((item) => (
         <li key={item.label}>
@@ -69,9 +75,7 @@ const MSidebar = ({ active, setActive, onAddProduct, onLogout }: any) => (
         </li>
       ))}
     </ul>
-    <Button variant="primary" onClick={onAddProduct}>
-      <Plus className="me-2" /> Add Product
-    </Button>
+
     <hr />
     <Dropdown>
       <Dropdown.Toggle

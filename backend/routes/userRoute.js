@@ -10,8 +10,8 @@ router.post("/login", userLogin);
 
 router.get("/user", protect, getCurrentUser);
 
-router.get("/history/:email", getUserBiddingHistory);
-router.get("/winning/:email", getUserWinningBids);
+router.get("/history/:email", protect, getUserBiddingHistory);
+router.get("/winning/:email", protect, getUserWinningBids);
 
 
 router.get("/users", allUsers);
@@ -22,7 +22,7 @@ router.post("/reset-password/:token", resetPassword);
 
 router.patch("/unverify/:id", unverifyUser)
 
-router.put("/:id",updateUser);
-router.delete("/del/:id", deleteUser);
+router.put("/:id",protect, updateUser);
+router.delete("/del/:id", protect, deleteUser);
 
 module.exports = router;

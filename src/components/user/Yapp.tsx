@@ -29,16 +29,15 @@ function Yapp() {
       <div className="container position-relative z-1 py-5">
         <section className="mb-5">
           <h2 className="fw-bold display-5">
-            Invest in property listed by our trusted banks.
+            Invest in property listed by our Associated Banks.
           </h2>
 
           <div className="row g-4 mt-4">
             <div className="col-md-6">
               <div className="p-4 rounded bg-dark bg-opacity-50 h-100">
                 <h5 className="fw-bold">Queries Ask Us?</h5>
-                <p>
-                  <ContactForm />
-                </p>
+
+                <ContactForm />
               </div>
             </div>
 

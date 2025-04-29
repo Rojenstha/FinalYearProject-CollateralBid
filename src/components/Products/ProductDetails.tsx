@@ -1,33 +1,38 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getProductById } from "../ProductWork/productService";
-import { placeBid, getBiddingHistory } from "../ProductWork/productService";
+import {
+  getProductById,
+  placeBid,
+  getBiddingHistory,
+} from "../ProductWork/productService";
 import { Form, Button, Card, Row, Col, Spinner, Alert } from "react-bootstrap";
 import Header from "../user/Header";
 import Footer from "../user/Footer";
 import AuctionCard from "./AuctionCard";
 import UserNav from "../user/UserNav";
 import Yapp from "../user/Yapp";
+import moment from "moment";
 
 interface Product {
   _id: string;
   title: string;
-  image: {
-    filePath: string;
-  };
+  image: { filePath: string };
   currentBid?: number;
   price?: number;
   bids: number;
   isSoldOut: boolean;
+  isVerify?: boolean;
   description?: string;
+  startTime?: string;
+  endTime?: string;
+  auctionStatus?: string;
+  minimumIncrement?: number;
+  maximumIncrement?: number;
 }
 
 interface Bid {
-  user: {
-    name: string;
-    email: string;
-  };
-  amount: number;
+  user: { name: string; email: string };
+  price: number;
   createdAt: string;
 }
 
@@ -39,14 +44,50 @@ const ProductDetail: React.FC = () => {
   const [bidAmount, setBidAmount] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [biddingHistory, setBiddingHistory] = useState<any[]>([]);
+  const [biddingHistory, setBiddingHistory] = useState<Bid[]>([]);
+  const [timeLeft, setTimeLeft] = useState({
+    hours: "00",
+    minutes: "00",
+    seconds: "00",
+  });
+  const [isLessThanOneHour, setIsLessThanOneHour] = useState(false);
+
+  const calculateTimeLeft = () => {
+    if (!product?.endTime) return;
+
+    const end = new Date(product.endTime).getTime();
+    const now = new Date().getTime();
+    const difference = end - now;
+
+    if (difference <= 0) {
+      setTimeLeft({ hours: "00", minutes: "00", seconds: "00" });
+      setIsLessThanOneHour(false);
+      return;
+    }
+
+    const hours = Math.floor(difference / (1000 * 60 * 60));
+    const minutes = Math.floor((difference / (1000 * 60)) % 60);
+    const seconds = Math.floor((difference / 1000) % 60);
+
+    const pad = (num: number) => String(num).padStart(2, "0");
+
+    setTimeLeft({
+      hours: pad(hours),
+      minutes: pad(minutes),
+      seconds: pad(seconds),
+    });
+
+    setIsLessThanOneHour(hours < 1);
+  };
 
   const fetchProduct = async () => {
     try {
       if (id) {
         const data = await getProductById(id);
         setProduct(data);
-        setBidAmount(data.currentBid ?? data.price ?? 0);
+        setBidAmount(
+          (data.currentBid ?? data.price ?? 0) + (data.minimumIncrement || 1000)
+        );
       }
     } catch (error) {
       console.error("Failed to fetch product details:", error);
@@ -58,57 +99,55 @@ const ProductDetail: React.FC = () => {
   const handleBidSubmit = async () => {
     try {
       if (!product || !id) return;
-
       await placeBid(id, bidAmount);
-      await fetchProduct(); // Refresh product data
-      await fetchBiddingHistory(); // Refresh bidding history
+      await fetchProduct();
+      await fetchBiddingHistory();
+      setSuccess("Bid placed successfully");
       setError(null);
     } catch (err: any) {
+      setSuccess(null);
       setError(err.response?.data?.message || "Failed to place bid.");
     }
   };
+
   const fetchBiddingHistory = async () => {
     if (!id) return;
-
     try {
       const history = await getBiddingHistory(id);
-      console.log("Fetched bidding history:", history);
-
-      // Check if history is an array or nested
-      if (Array.isArray(history)) {
-        setBiddingHistory(history);
-      } else if (Array.isArray(history?.bids)) {
-        setBiddingHistory(history.bids); // <-- example structure
-      } else {
-        setBiddingHistory([]); // fallback
-        console.warn("Bidding history format is unexpected:", history);
-      }
+      if (Array.isArray(history)) setBiddingHistory(history);
+      else setBiddingHistory([]);
     } catch (error) {
       console.error("Error fetching bidding history:", error);
     }
   };
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    fetchProduct();
+    fetchBiddingHistory();
 
-    const fetchData = async () => {
-      await fetchProduct();
-      await fetchBiddingHistory();
+    const productInterval = setInterval(() => {
+      fetchProduct();
+      fetchBiddingHistory();
+    }, 5000);
+
+    const countdownInterval = setInterval(() => {
+      calculateTimeLeft();
+    }, 1000);
+
+    return () => {
+      clearInterval(productInterval);
+      clearInterval(countdownInterval);
     };
+  }, [id, product?.endTime]);
 
-    fetchData();
-    interval = setInterval(fetchData, 5000);
+  if (loading) return <Spinner animation="border" variant="primary" />;
+  if (!product) return <p>Product not found.</p>;
 
-    return () => clearInterval(interval);
-  }, [id]);
-
-  if (loading) {
-    return <Spinner animation="border" variant="primary" />;
-  }
-
-  if (!product) {
-    return <p>Product not found.</p>;
-  }
+  const now = new Date();
+  const isAuctionOngoing =
+    new Date(product.startTime || "") <= now &&
+    now <= new Date(product.endTime || "");
+  const isBiddingAllowed = isAuctionOngoing && !product.isSoldOut;
 
   return (
     <>
@@ -119,7 +158,7 @@ const ProductDetail: React.FC = () => {
             <Card>
               <Card.Img
                 variant="top"
-                src={product.image.filePath}
+                src={product.image?.filePath}
                 alt={product.title}
                 style={{ maxHeight: "450px", objectFit: "cover" }}
               />
@@ -128,33 +167,61 @@ const ProductDetail: React.FC = () => {
           <Col md={6}>
             <h2>{product.title}</h2>
             <p>
-              <strong>Asset Verified:</strong> No
-            </p>
-            <Row className="mb-3 text-center">
-              {["149 Days", "12 Hours", "36 Minutes", "51 Seconds"].map(
-                (val, idx) => (
-                  <Col key={idx}>
-                    <Card>
-                      <Card.Body>
-                        <Card.Title>{val.split(" ")[0]}</Card.Title>
-                        <Card.Text>{val.split(" ")[1]}</Card.Text>
-                      </Card.Body>
-                    </Card>
-                  </Col>
-                )
+              <strong>Asset Verified:</strong>{" "}
+              {product.isVerify ? (
+                <span className="text-success">Yes</span>
+              ) : (
+                "No"
               )}
-            </Row>
-            <p>
-              <strong>Auction ends:</strong> 4 Aug 2024
             </p>
             <p>
-              <strong>Timezone:</strong> UTC 0
+              <strong>Status:</strong> {product.auctionStatus}
             </p>
             <p>
-              <strong>Price:</strong> रु {product.price}
+              <strong>Auction Window:</strong>
             </p>
-            <strong>Current bid:</strong> रु{" "}
-            {product.currentBid ?? product.price}
+            <ul>
+              <li>Start: {moment(product.startTime).format("LLL")}</li>
+              <li>
+                End: {moment(product.endTime).format("LLL")} <br />
+                <Row className="mb-3 text-center">
+                  {[
+                    { label: "Hours", value: timeLeft.hours },
+                    { label: "Minutes", value: timeLeft.minutes },
+                    { label: "Seconds", value: timeLeft.seconds },
+                  ].map((item, idx) => (
+                    <Col key={idx}>
+                      <Card
+                        className={isLessThanOneHour ? "border-danger" : ""}
+                        style={{
+                          borderWidth: "2px",
+                          borderColor: isLessThanOneHour ? "red" : undefined,
+                        }}
+                      >
+                        <Card.Body>
+                          <Card.Title
+                            style={{
+                              color: isLessThanOneHour ? "red" : "inherit",
+                            }}
+                          >
+                            {item.value}
+                          </Card.Title>
+                          <Card.Text>{item.label}</Card.Text>
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                  ))}
+                </Row>
+              </li>
+            </ul>
+
+            <p>
+              <strong>Starting Price:</strong> रु {product.price}
+            </p>
+            <p>
+              <strong>Current Bid:</strong> रु{" "}
+              {product.currentBid ?? product.price}
+            </p>
             <p>
               <strong>Total Bids:</strong> {product.bids}
             </p>
@@ -166,23 +233,31 @@ const ProductDetail: React.FC = () => {
                 <span className="text-success">Available</span>
               )}
             </p>
+            <p>
+              <strong>Min Increment:</strong> {product.minimumIncrement ?? 1000}{" "}
+              | <strong>Max Increment:</strong>{" "}
+              {product.maximumIncrement ?? "∞"}
+            </p>
             {error && <Alert variant="danger">{error}</Alert>}
             {success && <Alert variant="success">{success}</Alert>}
-            <Form inline className="d-flex gap-2 mt-3">
+            <Form className="d-flex gap-2 mt-3">
               <Form.Control
                 type="number"
                 value={bidAmount}
                 onChange={(e) => setBidAmount(parseFloat(e.target.value))}
-                className="me-2"
+                disabled={!isBiddingAllowed}
               />
-              <Button variant="primary" onClick={handleBidSubmit}>
-                Submit
+              <Button
+                variant="primary"
+                onClick={handleBidSubmit}
+                disabled={!isBiddingAllowed}
+              >
+                Submit Bid
               </Button>
             </Form>
           </Col>
         </Row>
 
-        {/* Tabs like Description, Auction History, etc. */}
         <div className="mt-5">
           <ul className="nav nav-tabs">
             <li className="nav-item">
@@ -206,8 +281,11 @@ const ProductDetail: React.FC = () => {
                     key={index}
                     className="list-group-item d-flex justify-content-between align-items-center"
                   >
-                    <span>{bid.user?.name || "Anonymous"}</span>
-                    <span>${bid.price}</span>
+                    <div>
+                      <strong>{bid.user?.name || "Anonymous"}</strong> <br />
+                      <small>{moment(bid.createdAt).format("LLL")}</small>
+                    </div>
+                    <span>रु {bid.price}</span>
                   </li>
                 ))}
               </ul>

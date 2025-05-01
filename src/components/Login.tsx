@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Cookies from "js-cookie";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -42,8 +44,6 @@ const Login = () => {
 
       const { token, role, ...userInfo } = response.data;
 
-      setMessage("Login successful");
-
       localStorage.setItem("token", token);
       localStorage.setItem("userInfo", JSON.stringify(userInfo));
 
@@ -52,7 +52,18 @@ const Login = () => {
         expires: 1,
       });
 
-      navigate(role === "seller" ? "/manager-dashboard" : "/home");
+      toast.success("Logged in successfully!", {
+        position: "top-center",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: true,
+      });
+
+      setTimeout(() => {
+        navigate(role === "seller" ? "/manager-dashboard" : "/home");
+      }, 2000); // Delay redirect until after the toast shows
     } catch (error: any) {
       const errorMessage = extractErrorMessage(error);
       setMessage(errorMessage);
@@ -61,6 +72,7 @@ const Login = () => {
 
   return (
     <div className="container-fluid min-vh-100 d-flex p-0">
+      <ToastContainer />
       <div
         className="col-md-6 d-flex flex-column justify-content-center align-items-center text-white p-5 text-center"
         style={{

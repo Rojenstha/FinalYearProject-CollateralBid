@@ -54,13 +54,36 @@ const AuctionCard: React.FC = () => {
     }, 600);
   };
 
-  const calculateTimeLeft = (endTime: string) => {
+  const calculateTimeLeft = (endTime: string, startTime: string) => {
     const end = new Date(endTime).getTime();
+    const start = new Date(startTime).getTime();
     const now = new Date().getTime();
     const difference = end - now;
+    const startDiff = start - now;
 
-    if (difference <= 0)
-      return { h: "00", m: "00", s: "00", lessThanHour: false };
+    if (difference <= 0) {
+      return {
+        h: "00",
+        m: "00",
+        s: "00",
+        status: "Ended",
+        lessThanHour: false,
+      };
+    }
+
+    if (startDiff > 0) {
+      const h = Math.floor(startDiff / (1000 * 60 * 60));
+      const m = Math.floor((startDiff / (1000 * 60)) % 60);
+      const s = Math.floor((startDiff / 1000) % 60);
+
+      return {
+        h: String(h).padStart(2, "0"),
+        m: String(m).padStart(2, "0"),
+        s: String(s).padStart(2, "0"),
+        status: "Starts In",
+        lessThanHour: h < 1,
+      };
+    }
 
     const h = Math.floor(difference / (1000 * 60 * 60));
     const m = Math.floor((difference / (1000 * 60)) % 60);
@@ -70,6 +93,7 @@ const AuctionCard: React.FC = () => {
       h: String(h).padStart(2, "0"),
       m: String(m).padStart(2, "0"),
       s: String(s).padStart(2, "0"),
+      status: "Active",
       lessThanHour: h < 1,
     };
   };
@@ -78,10 +102,14 @@ const AuctionCard: React.FC = () => {
     const now = new Date();
     const start = new Date(item.startTime);
     const end = new Date(item.endTime);
-    const { lessThanHour } = calculateTimeLeft(item.endTime);
+    const { status, lessThanHour } = calculateTimeLeft(
+      item.endTime,
+      item.startTime
+    );
 
-    if (now < start) return <span className="text-secondary">Not Started</span>;
-    if (now >= start && now <= end) {
+    if (status === "Not Started")
+      return <span className="text-secondary">Not Started</span>;
+    if (status === "Active") {
       return lessThanHour ? (
         <span className="text-warning">Last Hour Active</span>
       ) : (
@@ -99,7 +127,7 @@ const AuctionCard: React.FC = () => {
       ) : (
         <div className="d-flex flex-wrap">
           {items.map((item) => {
-            const timeLeft = calculateTimeLeft(item.endTime);
+            const timeLeft = calculateTimeLeft(item.endTime, item.startTime);
 
             return (
               <div
@@ -150,10 +178,19 @@ const AuctionCard: React.FC = () => {
                     <strong>Status:</strong> {getAuctionStatus(item)}
                   </p>
                   <div className="mb-2">
-                    <strong>Time Left:</strong>
+                    <strong>
+                      {timeLeft.status === "Starts In"
+                        ? "Starts In"
+                        : "Time Left"}
+                      :
+                    </strong>
                     <div
                       className={`mt-1 p-2 text-center rounded text-white ${
-                        timeLeft.lessThanHour ? "bg-danger" : "bg-primary"
+                        timeLeft.status === "Starts In"
+                          ? "bg-primary"
+                          : timeLeft.lessThanHour
+                          ? "bg-danger"
+                          : "bg-success"
                       }`}
                     >
                       {timeLeft.h}:{timeLeft.m}:{timeLeft.s}

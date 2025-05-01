@@ -43,9 +43,9 @@ const isVerifiedUser = (req, res, next) => {
   if (req.user?.isVerified === true) {
     return next();
   }
-  res.status(403);
-  throw new Error("Access denied. Only verified users allowed.");
+  return res.status(403).json({ message: "Access denied. Only verified users allowed." });
 };
+
 
 
 const isAdmin = expressAsyncHandler(async (req, res, next) => {

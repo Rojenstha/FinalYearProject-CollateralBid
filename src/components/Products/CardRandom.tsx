@@ -30,15 +30,11 @@ const CardRandom: React.FC<CardRandomProps> = ({ excludeId }) => {
     const fetchProducts = async () => {
       try {
         const products = await getAllProducts();
-
-        // Filter out the current product
         const filtered = products.filter((item) => item._id !== excludeId);
-
-        // Shuffle and pick 5 random items
         const shuffled = filtered.sort(() => 0.5 - Math.random());
         const selected = shuffled.slice(0, 5);
-
         setItems(selected);
+        setDisplayItems(selected); // <-- ADD THIS LINE
       } catch (error) {
         console.error("Failed to fetch products:", error);
       } finally {
@@ -49,7 +45,7 @@ const CardRandom: React.FC<CardRandomProps> = ({ excludeId }) => {
     fetchProducts();
 
     const interval = setInterval(() => {
-      setItems((prevItems) => [...prevItems]); // Force re-render every second
+      setItems((prevItems) => [...prevItems]); // Force re-render
     }, 1000);
 
     return () => clearInterval(interval);

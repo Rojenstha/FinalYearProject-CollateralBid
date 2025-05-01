@@ -16,6 +16,6 @@ router.get("/:productId", getBiddingHistory);
 router.post("/sell", sellProduct);
 
 // Route to place a bid on a product (protected)
-router.post("/:productId", protect, isVerifiedUser, placeBid);
+router.post("/", protect, isVerifiedUser, placeBid);
 
 module.exports = router;

@@ -15,10 +15,9 @@ const getBiddingHistory = asyncHandler(async(req, res) => {
 });
 
 const placeBid = async (req, res) => {
-  console.log("Bid route hit. Product ID:", req.params.id, "User:", req.user);
+  console.log("Bid route hit. Body:", req.body, "User:", req.user);
 
-  const { id: productId } = req.params;
-  const { increment } = req.body; // receive increment, not full price
+  const { productId, increment } = req.body;
   const userId = req.user._id;
 
   try {
@@ -26,7 +25,6 @@ const placeBid = async (req, res) => {
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }
-
     if (product.isSoldOut || product.auctionStatus === "sold") {
       return res.status(400).json({ message: "This product is already sold." });
     }
@@ -65,6 +63,17 @@ const placeBid = async (req, res) => {
 
     if (recentSameBid) {
       return res.status(400).json({ message: "You already placed this bid amount." });
+    }
+
+    // ✅ Prevent rebidding by the highest bidder
+    const highestBid = await BiddingProduct.findOne({ product: productId })
+      .sort({ price: -1 })
+      .populate("user");
+
+    if (highestBid && highestBid.user._id.toString() === userId.toString()) {
+      return res.status(400).json({
+        message: "You already have the highest bid.",
+      });
     }
 
     const bid = new BiddingProduct({

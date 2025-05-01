@@ -4,6 +4,8 @@ import { Modal, Button, Dropdown } from "react-bootstrap";
 import { Bell, Person, MenuDown } from "react-bootstrap-icons";
 import axios from "axios";
 import logo from "../../assets/logo.png";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Header = () => {
   const [user, setUser] = useState(null);
@@ -24,8 +26,18 @@ const Header = () => {
     axios
       .post("http://localhost:5000/logout", {}, { withCredentials: true })
       .then(() => {
+        localStorage.removeItem("token"); // Clear token from localStorage
         setShowPopup(false);
-        navigate("/");
+        toast.success("Signed out successfully!", {
+          position: "top-center",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: true,
+          progress: undefined,
+        });
+        setTimeout(() => navigate("/"), 2500); // Delay navigation to show toast
       })
       .catch((err) => console.error("Logout error:", err));
   };
@@ -104,6 +116,8 @@ const Header = () => {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      <ToastContainer />
     </>
   );
 };

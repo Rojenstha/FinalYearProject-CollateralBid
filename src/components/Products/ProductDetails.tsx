@@ -37,7 +37,6 @@ interface Bid {
   price: number;
   createdAt: string;
 }
-
 const ProductDetail: React.FC = () => {
   const { productId: id } = useParams();
   const [product, setProduct] = useState<Product | null>(null);
@@ -53,6 +52,8 @@ const ProductDetail: React.FC = () => {
     seconds: "00",
   });
   const [isLessThanOneHour, setIsLessThanOneHour] = useState(false);
+
+  const currentUser = { name: "Your Name", email: "your.email@example.com" }; // Replace with actual user data
 
   const calculateTimeLeft = () => {
     if (!product?.endTime) return;
@@ -87,9 +88,6 @@ const ProductDetail: React.FC = () => {
       if (id) {
         const data = await getProductById(id);
         setProduct(data);
-        setBidAmount(
-          (data.currentBid ?? data.price ?? 0) + (data.minimumIncrement || 1000)
-        );
       }
     } catch (error) {
       console.error("Failed to fetch product details:", error);
@@ -101,6 +99,23 @@ const ProductDetail: React.FC = () => {
   const handleBidSubmit = async () => {
     try {
       if (!product || !id) return;
+
+      const currentHighest = Math.max(
+        ...biddingHistory.map((bid) => bid.price),
+        product.price || 0
+      );
+
+      const isUserHighestBidder = biddingHistory.some(
+        (bid) =>
+          bid.user.email === currentUser.email && bid.price === currentHighest
+      );
+
+      if (isUserHighestBidder) {
+        setError("You already have the highest bid.");
+        setSuccess(null);
+        return;
+      }
+
       await placeBid(id, bidAmount);
       await fetchProduct();
       await fetchBiddingHistory();
@@ -108,7 +123,18 @@ const ProductDetail: React.FC = () => {
       setError(null);
     } catch (err: any) {
       setSuccess(null);
-      setError(err.response?.data?.message || "Failed to place bid.");
+      if (err.response && err.response.data && err.response.data.message) {
+        if (
+          err.response.data.message ===
+          "Access denied. Only verified users allowed."
+        ) {
+          setError("You need to be verified to place a bid.");
+        } else {
+          setError(err.response?.data?.message || "Failed to place bid.");
+        }
+      } else {
+        setError("An unknown error occurred.");
+      }
     }
   };
 
@@ -124,6 +150,8 @@ const ProductDetail: React.FC = () => {
   };
 
   useEffect(() => {
+    setSuccess(null);
+    setError(null);
     fetchProduct();
     fetchBiddingHistory();
 
@@ -150,6 +178,15 @@ const ProductDetail: React.FC = () => {
     new Date(product.startTime || "") <= now &&
     now <= new Date(product.endTime || "");
   const isBiddingAllowed = isAuctionOngoing && !product.isSoldOut;
+
+  // Find the highest bid
+  const highestBid = Math.max(
+    ...biddingHistory.map((bid) => bid.price),
+    product.price || 0
+  );
+  const isHighestBidder = biddingHistory.some(
+    (bid) => bid.user.email === currentUser.email && bid.price === highestBid
+  );
 
   return (
     <>
@@ -226,7 +263,7 @@ const ProductDetail: React.FC = () => {
             <p>
               <strong>Starting Price:</strong> रु {product.price}{" "}
               <small>
-                (Rs.
+                (Rs.{" "}
                 {numWords(product.price || 0).replace(/\b\w/g, (l) =>
                   l.toUpperCase()
                 )}
@@ -238,7 +275,7 @@ const ProductDetail: React.FC = () => {
               <strong>Current Bid:</strong> रु{" "}
               {product.currentBid ?? product.price}{" "}
               <small>
-                (Rs.
+                (Rs.{" "}
                 {numWords(product.currentBid ?? (product.price || 0)).replace(
                   /\b\w/g,
                   (l) => l.toUpperCase()
@@ -265,17 +302,45 @@ const ProductDetail: React.FC = () => {
             </p>
             {error && <Alert variant="danger">{error}</Alert>}
             {success && <Alert variant="success">{success}</Alert>}
+
+            {isHighestBidder ? (
+              <p className="mt-1 text-muted">
+                You have the highest bid: रु {highestBid}{" "}
+                <small>
+                  (
+                  {numWords(highestBid).replace(/\b\w/g, (l) =>
+                    l.toUpperCase()
+                  )}
+                  )
+                </small>
+              </p>
+            ) : (
+              isBiddingAllowed && (
+                <p className="mt-1 text-muted">
+                  Your bid will be: रु{" "}
+                  {(product.currentBid ?? product.price ?? 0) + bidAmount}{" "}
+                  <small>
+                    (
+                    {numWords(
+                      (product.currentBid ?? product.price ?? 0) + bidAmount
+                    ).replace(/\b\w/g, (l) => l.toUpperCase())}
+                    )
+                  </small>
+                </p>
+              )
+            )}
+
             <Form className="d-flex gap-2 mt-3">
               <Form.Control
                 type="number"
                 value={bidAmount}
                 onChange={(e) => setBidAmount(parseFloat(e.target.value))}
-                disabled={!isBiddingAllowed}
+                disabled={!isBiddingAllowed || isHighestBidder}
               />
               <Button
                 variant="primary"
                 onClick={handleBidSubmit}
-                disabled={!isBiddingAllowed}
+                disabled={!isBiddingAllowed || isHighestBidder}
               >
                 Submit Bid
               </Button>
@@ -304,7 +369,9 @@ const ProductDetail: React.FC = () => {
                 {biddingHistory.map((bid, index) => (
                   <li
                     key={index}
-                    className="list-group-item d-flex justify-content-between align-items-center"
+                    className={`list-group-item d-flex justify-content-between align-items-center ${
+                      bid.price === highestBid ? "bg-success text-white" : ""
+                    }`}
                   >
                     <div>
                       <strong>{bid.user?.name || "Anonymous"}</strong> <br />

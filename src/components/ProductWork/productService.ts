@@ -23,10 +23,19 @@ const getProductById = async (id: string) => {
 };
 
 // Place a bid
-export const placeBid = async (productId: string, price: number) => {
-  const response = await axios.post(`http://localhost:5000/api/bidding/${productId}`, { price });
-  return response.data;
+export const placeBid = async (productId: string, increment: number) => {
+  try {
+    const response = await axios.post("http://localhost:5000/api/bidding", {
+      productId,
+      increment, // rename to "price" if your backend expects that
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error("Error placing bid:", error.response?.data || error.message);
+    throw error;
+  }
 };
+
 
 
 

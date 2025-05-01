@@ -60,8 +60,6 @@ const productSchema = mongoose.Schema({
       },
       auctionStatus: {
         type: String,
-        enum: ["notStarted", "ongoing", "ended", "sold"],
-        default: "notStarted",
       },      
       bids: {
         type: Number,
@@ -72,8 +70,8 @@ const productSchema = mongoose.Schema({
     soldTo:{
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
-    },
-})
+    }
+},{ timestamps: true })
 
 const Product = mongoose.model("Product", productSchema);
 module.exports = Product;

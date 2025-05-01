@@ -65,6 +65,7 @@ const InAuction = () => {
 
   return (
     <div className="d-flex">
+      <div className="p-4" style={{ marginLeft: "250px" }}></div>
       <Sidebar
         active={active}
         setActive={setActive}
@@ -86,9 +87,9 @@ const InAuction = () => {
             <tr>
               <th>Image</th>
               <th>Title</th>
-              <th>Description</th>
               <th>Price</th>
-              <th>Bidding Price</th>
+              <th>Highest Bidd</th>
+              <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -108,10 +109,18 @@ const InAuction = () => {
                     />
                   </td>
                   <td>{product.title}</td>
-                  <td>{product.description}</td>
-                  <td>${product.price}</td>
-                  <td>${product.biddingPrice}</td>
+                  <td>रु {product.price}</td>
+                  <td>रु {product.biddingPrice}</td>
+                  <td>{product.isVerify}</td>
                   <td>
+                    <button
+                      className="btn btn-sm btn-outline-primary me-2"
+                      onClick={() =>
+                        navigate(`/manager/update-product/${product._id}`)
+                      }
+                    >
+                      View Listing
+                    </button>
                     <button
                       className="btn btn-sm btn-primary me-2"
                       onClick={() =>

@@ -150,7 +150,11 @@ const deleteProduct = asyncHandler(async (req, res) => {
 
 
 const updateProduct = asyncHandler(async (req, res) => {
-  const { title, description, price, category, height, lengthpic, width, mediumused, weigth } = req.body;
+  const { title, description, price, category,city,
+    minimumIncrement,
+    maximumIncrement,
+    startTime,
+    endTime, } = req.body;
   const { id } = req.params;
   const product = await Product.findById(id);
 

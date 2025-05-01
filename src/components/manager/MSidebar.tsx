@@ -14,8 +14,8 @@ import {
 
 const MSidebar = ({ active, setActive, onLogout }: any) => (
   <div
-    className="d-flex flex-column flex-shrink-0 p-3 bg-dark text-white"
-    style={{ width: "250px", height: "100vh" }}
+    className="d-flex flex-column flex-shrink-0 bg-dark text-white position-fixed top-0 start-0"
+    style={{ width: "250px", height: "100vh", zIndex: 1000 }}
   >
     <Link
       to=""

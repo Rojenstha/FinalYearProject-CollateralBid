@@ -4,19 +4,55 @@ import { useNavigate } from "react-router-dom";
 import Sidebar from "./MSidebar";
 import LogoutModal from "./MLogoutModal";
 import axios from "axios";
+import numWords from "num-words";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const ManagerAddProduct = () => {
+  const formatIndianNumber = (num: number): string => {
+    return num.toLocaleString("en-IN");
+  };
+
   const [active, setActive] = useState("Add Product");
   const [showLogoutPopup, setShowLogoutPopup] = useState(false);
   const [formData, setFormData] = useState<any>({});
   const [imageFile, setImageFile] = useState<File | null>(null);
   const navigate = useNavigate();
+  const [priceInWords, setPriceInWords] = useState("");
+  const [incrementInWords, setIncrementInWords] = useState("");
+  const [maximumIncrementInWords, setMaximumIncrementInWords] = useState("");
+  const [startTime, setStartTime] = useState<Date | null>(null);
+  const [endTime, setEndTime] = useState<Date | null>(null);
+
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev: any) => ({ ...prev, [name]: value }));
+
+    if (name === "price") {
+      const num = parseInt(value);
+      if (!isNaN(num))
+        setPriceInWords(numWords(num).replace(/\b\w/g, (l) => l.toUpperCase()));
+    }
+
+    if (name === "minimumIncrement") {
+      const num = parseInt(value);
+      if (!isNaN(num))
+        setIncrementInWords(
+          numWords(num).replace(/\b\w/g, (l) => l.toUpperCase())
+        );
+    }
+    if (name === "maximumIncrement") {
+      const num = parseInt(value);
+      if (!isNaN(num)) {
+        setMaximumIncrementInWords(
+          numWords(num).replace(/\b\w/g, (l) => l.toUpperCase())
+        );
+      }
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -27,29 +63,33 @@ const ManagerAddProduct = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true); // Show loading popup
     const payload = new FormData();
-    for (const key in formData) {
-      payload.append(key, formData[key]);
+    const fullData = { ...formData };
+    if (startTime) fullData.startTime = startTime.toISOString();
+    if (endTime) fullData.endTime = endTime.toISOString();
+
+    for (const key in fullData) {
+      payload.append(key, fullData[key]);
     }
+
     if (imageFile) {
       payload.append("image", imageFile);
     }
-    console.log("Form data:", formData);
-    console.log("Image file:", imageFile);
 
     try {
       const response = await axios.post(
         "http://localhost:5000/api/product/create",
         payload
       );
-      console.log(response.data); // Log successful response
       alert("Product added successfully!");
       navigate("/manager-dashboard");
     } catch (err: any) {
-      console.error("Error response:", err.response); // Log full error response
       alert(
         `Failed to add product: ${err.response?.data?.message || err.message}`
       );
+    } finally {
+      setLoading(false); // Hide loading popup
     }
   };
 
@@ -61,6 +101,8 @@ const ManagerAddProduct = () => {
 
   return (
     <div className="d-flex">
+      <div className="p-4" style={{ marginLeft: "250px" }}></div>
+
       <Sidebar
         active={active}
         setActive={setActive}
@@ -120,6 +162,11 @@ const ManagerAddProduct = () => {
               <Col md={6}>
                 <Form.Group className="mb-3">
                   <Form.Label>Starting Price</Form.Label>
+                  <Form.Text className="text-muted">
+                    रु {formatIndianNumber(Number(formData.price || 0))} —{" "}
+                    {priceInWords}
+                  </Form.Text>
+
                   <Form.Control
                     type="number"
                     name="price"
@@ -130,6 +177,12 @@ const ManagerAddProduct = () => {
 
                 <Form.Group className="mb-3">
                   <Form.Label>Minimum Increment</Form.Label>
+                  <Form.Text className="text-muted">
+                    रु{" "}
+                    {formatIndianNumber(Number(formData.minimumIncrement || 0))}{" "}
+                    — {incrementInWords}
+                  </Form.Text>
+
                   <Form.Control
                     type="number"
                     name="minimumIncrement"
@@ -140,12 +193,18 @@ const ManagerAddProduct = () => {
 
                 <Form.Group className="mb-3">
                   <Form.Label>Maximum Increment</Form.Label>
+                  <Form.Text className="text-muted">
+                    रु{" "}
+                    {formatIndianNumber(Number(formData.maximumIncrement || 0))}{" "}
+                    — {maximumIncrementInWords}
+                  </Form.Text>
                   <Form.Control
                     type="number"
                     name="maximumIncrement"
                     onChange={handleChange}
                   />
                 </Form.Group>
+
                 <Form.Group className="mb-3">
                   <Form.Label>Category</Form.Label>
                   <Form.Control
@@ -161,22 +220,30 @@ const ManagerAddProduct = () => {
                 </Form.Group>
 
                 <Form.Group className="mb-3">
-                  <Form.Label>Start Time</Form.Label>
-                  <Form.Control
-                    type="datetime-local"
-                    name="startTime"
-                    onChange={handleChange}
-                    required
+                  <Form.Label>Start Auction: </Form.Label>
+                  <DatePicker
+                    selected={startTime}
+                    onChange={(date) => setStartTime(date)}
+                    showTimeSelect
+                    timeFormat="HH:mm"
+                    timeIntervals={15}
+                    dateFormat="MMMM d, yyyy h:mm aa"
+                    className="form-control"
+                    placeholderText="Select start time"
                   />
                 </Form.Group>
 
                 <Form.Group className="mb-3">
-                  <Form.Label>End Time</Form.Label>
-                  <Form.Control
-                    type="datetime-local"
-                    name="endTime"
-                    onChange={handleChange}
-                    required
+                  <Form.Label>End Auction: </Form.Label>
+                  <DatePicker
+                    selected={endTime}
+                    onChange={(date) => setEndTime(date)}
+                    showTimeSelect
+                    timeFormat="HH:mm"
+                    timeIntervals={15}
+                    dateFormat="MMMM d, yyyy h:mm aa"
+                    className="form-control"
+                    placeholderText="Select end time"
                   />
                 </Form.Group>
               </Col>
@@ -194,6 +261,26 @@ const ManagerAddProduct = () => {
         onCancel={() => setShowLogoutPopup(false)}
         onConfirm={confirmLogout}
       />
+      {loading && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            height: "100%",
+            width: "100%",
+            backgroundColor: "rgba(0,0,0,0.4)",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1050,
+          }}
+        >
+          <div className="bg-white p-4 rounded shadow">
+            <strong>Submitting product...</strong>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

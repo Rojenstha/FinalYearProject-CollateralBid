@@ -6,6 +6,7 @@ import moment from "moment";
 import numWords from "num-words";
 
 interface AuctionItem {
+  excludeId?: string;
   _id: string;
   title: string;
   image: {
@@ -19,17 +20,25 @@ interface AuctionItem {
   endTime: string;
 }
 
-const AuctionCard: React.FC = () => {
+const CardRandom: React.FC<CardRandomProps> = ({ excludeId }) => {
   const [items, setItems] = useState<AuctionItem[]>([]);
+  const [displayItems, setDisplayItems] = useState<AuctionItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const navigate = useNavigate();
-  const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const products = await getAllProducts();
-        setItems(products);
+
+        // Filter out the current product
+        const filtered = products.filter((item) => item._id !== excludeId);
+
+        // Shuffle and pick 5 random items
+        const shuffled = filtered.sort(() => 0.5 - Math.random());
+        const selected = shuffled.slice(0, 5);
+
+        setItems(selected);
       } catch (error) {
         console.error("Failed to fetch products:", error);
       } finally {
@@ -44,8 +53,15 @@ const AuctionCard: React.FC = () => {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [excludeId]);
 
+  // Function to shuffle and pick 5 random products, excluding the selected one
+  const getRandomProducts = (products: AuctionItem[]) => {
+    const shuffled = [...products].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, 5); // Return only 5 products
+  };
+
+  // Handle the card click: scroll to top, then navigate
   const handleCardClick = (item: AuctionItem) => {
     window.scrollTo({ top: 0, behavior: "smooth" });
 
@@ -54,6 +70,7 @@ const AuctionCard: React.FC = () => {
     }, 600);
   };
 
+  // Calculate time left for auction
   const calculateTimeLeft = (endTime: string) => {
     const end = new Date(endTime).getTime();
     const now = new Date().getTime();
@@ -74,6 +91,7 @@ const AuctionCard: React.FC = () => {
     };
   };
 
+  // Get auction status (Not started, Active, or Ended)
   const getAuctionStatus = (item: AuctionItem) => {
     const now = new Date();
     const start = new Date(item.startTime);
@@ -93,18 +111,17 @@ const AuctionCard: React.FC = () => {
 
   return (
     <div className="my-5 ps-4 bg-light py-4">
-      <h2 className="mb-4 text-start">Live Auction</h2>
+      <h2 className="mb-4 text-start">Other Auctions</h2>
       {loading ? (
         <p>Loading...</p>
       ) : (
         <div className="d-flex flex-wrap">
-          {items.map((item) => {
+          {displayItems.map((item) => {
             const timeLeft = calculateTimeLeft(item.endTime);
 
             return (
               <div
                 key={item._id}
-                ref={(el) => (itemRefs.current[item._id] = el)}
                 className="card shadow-sm me-3 mb-4"
                 style={{ width: "20rem", cursor: "pointer" }}
                 onClick={() => handleCardClick(item)}
@@ -185,4 +202,4 @@ const AuctionCard: React.FC = () => {
   );
 };
 
-export default AuctionCard;
+export default CardRandom;

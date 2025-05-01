@@ -15,8 +15,10 @@ const getBiddingHistory = asyncHandler(async(req, res) => {
 });
 
 const placeBid = async (req, res) => {
+  console.log("Bid route hit. Product ID:", req.params.id, "User:", req.user);
+
   const { id: productId } = req.params;
-  const { price } = req.body;
+  const { increment } = req.body; // receive increment, not full price
   const userId = req.user._id;
 
   try {
@@ -25,7 +27,6 @@ const placeBid = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    // Check if sold
     if (product.isSoldOut || product.auctionStatus === "sold") {
       return res.status(400).json({ message: "This product is already sold." });
     }
@@ -42,24 +43,26 @@ const placeBid = async (req, res) => {
     const minimumIncrement = product.minimumIncrement || 1000;
     const maximumIncrement = product.maximumIncrement ?? Infinity;
 
-    if (price < currentBid + minimumIncrement) {
+    if (increment < minimumIncrement) {
       return res.status(400).json({
-        message: `Bid must be at least NPR ${minimumIncrement} higher than the current bid (NPR ${currentBid}).`,
+        message: `Increment must be at least NPR ${minimumIncrement}.`,
       });
     }
 
-    if (price - currentBid > maximumIncrement) {
+    if (increment > maximumIncrement) {
       return res.status(400).json({
-        message: `Bid increment can't exceed NPR ${maximumIncrement}.`,
+        message: `Increment cannot exceed NPR ${maximumIncrement}.`,
       });
     }
 
-    // Optional: prevent duplicate bid at same price by same user
+    const newBidPrice = currentBid + increment;
+
     const recentSameBid = await BiddingProduct.findOne({
       user: userId,
       product: productId,
-      price: price,
+      price: newBidPrice,
     });
+
     if (recentSameBid) {
       return res.status(400).json({ message: "You already placed this bid amount." });
     }
@@ -67,12 +70,11 @@ const placeBid = async (req, res) => {
     const bid = new BiddingProduct({
       user: userId,
       product: productId,
-      price,
+      price: newBidPrice,
     });
     await bid.save();
 
-    // Update product
-    product.currentBid = price;
+    product.currentBid = newBidPrice;
     product.bids += 1;
 
     if (product.auctionStatus === "notStarted") {
@@ -87,6 +89,7 @@ const placeBid = async (req, res) => {
     res.status(500).json({ message: "Server error while placing bid" });
   }
 };
+
 
 
 const sellProduct = asyncHandler(async(req, res) => {

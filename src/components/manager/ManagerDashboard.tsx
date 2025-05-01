@@ -19,6 +19,8 @@ const ManagerDashboard = () => {
 
   return (
     <div className="d-flex">
+      <div className="p-4" style={{ marginLeft: "250px" }}></div>
+
       <Sidebar
         active={active}
         setActive={setActive}

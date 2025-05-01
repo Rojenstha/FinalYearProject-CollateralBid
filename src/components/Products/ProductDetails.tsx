@@ -8,10 +8,11 @@ import {
 import { Form, Button, Card, Row, Col, Spinner, Alert } from "react-bootstrap";
 import Header from "../user/Header";
 import Footer from "../user/Footer";
-import AuctionCard from "./AuctionCard";
 import UserNav from "../user/UserNav";
 import Yapp from "../user/Yapp";
 import moment from "moment";
+import numWords from "num-words";
+import CardRandom from "./CardRandom";
 
 interface Product {
   _id: string;
@@ -20,6 +21,7 @@ interface Product {
   currentBid?: number;
   price?: number;
   bids: number;
+  city: string;
   isSoldOut: boolean;
   isVerify?: boolean;
   description?: string;
@@ -167,19 +169,12 @@ const ProductDetail: React.FC = () => {
           <Col md={6}>
             <h2>{product.title}</h2>
             <p>
-              <strong>Asset Verified:</strong>{" "}
-              {product.isVerify ? (
-                <span className="text-success">Yes</span>
-              ) : (
-                "No"
-              )}
+              <strong>City: {product.city}</strong>
             </p>
             <p>
-              <strong>Status:</strong> {product.auctionStatus}
+              <strong>Auction Timeline:</strong>
             </p>
-            <p>
-              <strong>Auction Window:</strong>
-            </p>
+
             <ul>
               <li>Start: {moment(product.startTime).format("LLL")}</li>
               <li>
@@ -216,21 +211,51 @@ const ProductDetail: React.FC = () => {
             </ul>
 
             <p>
-              <strong>Starting Price:</strong> रु {product.price}
+              <strong>Auction Status:</strong>{" "}
+              {new Date(product.endTime || "") < new Date() ? (
+                <span className="text-danger">Ended</span>
+              ) : isLessThanOneHour ? (
+                <span className="text-warning">Last Hour Active</span>
+              ) : isAuctionOngoing ? (
+                <span className="text-success">Auction - Active</span>
+              ) : (
+                product.auctionStatus
+              )}
             </p>
+
+            <p>
+              <strong>Starting Price:</strong> रु {product.price}{" "}
+              <small>
+                (Rs.
+                {numWords(product.price || 0).replace(/\b\w/g, (l) =>
+                  l.toUpperCase()
+                )}
+                )
+              </small>
+            </p>
+
             <p>
               <strong>Current Bid:</strong> रु{" "}
-              {product.currentBid ?? product.price}
+              {product.currentBid ?? product.price}{" "}
+              <small>
+                (Rs.
+                {numWords(product.currentBid ?? (product.price || 0)).replace(
+                  /\b\w/g,
+                  (l) => l.toUpperCase()
+                )}
+                )
+              </small>
             </p>
+
             <p>
               <strong>Total Bids:</strong> {product.bids}
             </p>
             <p>
-              <strong>Status:</strong>{" "}
+              <strong>Sold Status:</strong>{" "}
               {product.isSoldOut ? (
                 <span className="text-danger">Sold Out</span>
               ) : (
-                <span className="text-success">Available</span>
+                <span className="text-success">In-process</span>
               )}
             </p>
             <p>
@@ -293,7 +318,7 @@ const ProductDetail: React.FC = () => {
           </div>
         </div>
       </div>
-      <AuctionCard />
+      <CardRandom excludeId={id} />
       <Yapp />
       <Footer />
     </>

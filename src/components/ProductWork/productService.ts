@@ -23,19 +23,16 @@ const getProductById = async (id: string) => {
 };
 
 // Place a bid
-export const placeBid = async (productId: string, price: number, userId: string) => {
-  const response = await axios.post("/api/bidding", {
-    productId,
-    price,
-    userId,
-  });
+export const placeBid = async (productId: string, price: number) => {
+  const response = await axios.post(`http://localhost:5000/api/bidding/${productId}`, { price });
   return response.data;
 };
 
 
+
 // Get bidding history
 export const getBiddingHistory = async (productId: string) => {
-  const res = await axios.get(`/api/bidding/${productId}`); 
+  const res = await axios.get(`http://localhost:5000/api/bidding/${productId}`); 
   return res.data;
 };
 
